@@ -28,15 +28,15 @@ app.post('/token-generation', (req, res) => {
 	if(req.body.ResetTokenData == 'true') {
 		SQL_ResetTokenData.ExecuteQuery(db_connection, function () {
 			SQL_GetTokenInfo.ExecuteQuery(undefined, db_connection, function (TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails) {
-				console.log(TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails);
+				// console.log(TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails);
 				res.redirect('back');
 				// res.render('token-generation', { title: "Token Generation | Chawla Clinic", TokenMaxCounts, MaleDetails, FemaleDetails, ChildDetails});
 			});
 		});
-	} else {
+	} else if(req.body.Name != undefined && req.body.Type != undefined && req.body.TokenDateTime != undefined) {
 		SQL_AddTokenInfo.ExecuteQuery(req.body, SQL_GetTokenInfo, db_connection, function () {
 			SQL_GetTokenInfo.ExecuteQuery(undefined, db_connection, function (TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails) {
-				console.log(TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails);
+				// console.log(TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails);
 				res.redirect('back');
 				// res.render('token-generation', { title: "Token Generation | Chawla Clinic", TokenMaxCounts, MaleDetails, FemaleDetails, ChildDetails});
 			});
