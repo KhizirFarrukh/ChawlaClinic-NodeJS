@@ -37,5 +37,6 @@ public class TokenPrinting {
     String Footer = "\n\n\n\n\n\nSOFTWARE DEVELOPED BY KHIZIR FARRUKH\nEMAIL: khizirfarrukh@outlook.com\n\n\n\n\n";
     String FullString = justify1Str + fSize1Str + ChawlaClinicName + fSize2Str + TimeDate_PTypeToken + HorizontalLine + fSize4Str + TokenNumber + fSize5Str + Footer + cutPStr;
     printerService.printString(PrinterName, FullString);
+    System.out.println("Printing " + PatientType + " token number #" + TokenNumber + " on printer " + PrinterName);
   }
 }

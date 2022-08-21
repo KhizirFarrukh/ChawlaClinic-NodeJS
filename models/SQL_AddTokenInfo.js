@@ -14,7 +14,7 @@ function ExecuteQuery(data, GetTokenInfo, con, callback) {
         sql_Logs += "VALUES(" + NewTokenNumber + ",'" + data.Type + "','" + data.Name + "','" + TokenDateTime + "');";
         con.query(sql_Logs, function (err, result) {
           if (err) throw err;
-          callback();
+          callback(NewTokenNumber);
       });
     });
 	});

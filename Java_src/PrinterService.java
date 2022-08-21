@@ -21,8 +21,7 @@ public class PrinterService implements Printable {
 		DocFlavor flavor = DocFlavor.BYTE_ARRAY.AUTOSENSE;
 		PrintRequestAttributeSet pras = new HashPrintRequestAttributeSet();
 		
-		PrintService printServices[] = PrintServiceLookup.lookupPrintServices(
-				flavor, pras);
+		PrintService printServices[] = PrintServiceLookup.lookupPrintServices(flavor, pras);
 		
 		List<String> printerList = new ArrayList<String>();
 		for(PrintService printerService: printServices){
