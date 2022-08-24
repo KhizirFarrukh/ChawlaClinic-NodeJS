@@ -25,6 +25,8 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use("/static", express.static(__dirname + '/static'));
+app.use("/static/css", express.static(__dirname + '/static/css'));
+app.use("/static/js", express.static(__dirname + '/static/js'));
 
 app.listen(3000);
 
