@@ -19,6 +19,8 @@ const SQL_GetProductsDetails = require('./models/SQL_GetProductsDetails');
 const SQL_GetTokenInfo = require('./models/SQL_GetTokenInfo');
 const SQL_AddTokenInfo = require('./models/SQL_AddTokenInfo');
 const SQL_ResetTokenData = require('./models/SQL_ResetTokenData');
+const SQL_AddDressingTempRecord = require('./models/SQL_AddDressingTempRecord');
+const SQL_GetTempDressingRecord = require('./models/SQL_GetTempDressingRecord');
 
 const app = express();
 
@@ -128,12 +130,12 @@ app.post('/patient-details', (req, res) => {
 });
 
 app.get('/patient-details/add-dressing-record', (req, res) => {
-	res.render('add-dressing-record', { title: "Add Patient Dressing Record | Chawla Clinic", PadQuantity: "", PadFraction: 0, DressingDate: undefined, DressingAmount: undefined });
+	res.render('add-dressing-record', { title: "Add Patient Dressing Record | Chawla Clinic", PadQuantity: "", PadFraction: 0, DressingDate: undefined, DressingAmount: undefined, SearchResult: undefined, CartItems: [], TotalAmount: 0});
 });
 
 app.post('/patient-details/add-dressing-record', (req, res) => {
 	console.log(req.body);
-	if (req.body.id == undefined) {
+	if (req.body.GetAmount == "true") {
 		var padQty = 0;
 		if (req.body.padquantity != "") {
 			padQty = parseInt(req.body.padquantity);
@@ -152,10 +154,17 @@ app.post('/patient-details/add-dressing-record', (req, res) => {
 			}
 			console.log(DressingAmount);
 			SQL_GetDiscountMode.ExecuteQuery(req.query.addID, db_connection, function (DiscMode) {
-				res.render('add-dressing-record', { title: "Add Dressing Record | Chawla Clinic", PadQuantity: padQty, PadFraction: padFraction, DressingDate: DressingDate, DressingAmount: DressingAmount, PatientID: req.query.addID, DiscountMode: DiscMode[0].DiscountMode });
+				res.render('add-dressing-record', { title: "Add Dressing Record | Chawla Clinic", PadQuantity: padQty, PadFraction: padFraction, DressingDate: DressingDate, DressingAmount: DressingAmount, PatientID: req.query.addID, DiscountMode: DiscMode[0].DiscountMode, SearchResult: undefined, CartItems: [], TotalAmount: 0});
 			});
 		});
-	} else {
+	} else if(req.body.dressing_pid != undefined) {
+		SQL_AddDressingTempRecord.ExecuteQuery(req.body, SQL_GetTempDressingRecord, db_connection, function (result) {
+			SQL_GetTempDressingRecord.ExecuteQuery(req.body.dressing_pid, db_connection, function (result) {
+			
+				// res.render('add-dressing-record', { title: "Add Dressing Record | Chawla Clinic", PadQuantity: padQty, PadFraction: padFraction, DressingDate: DressingDate, DressingAmount: DressingAmount, PatientID: req.query.addID, DiscountMode: DiscMode[0].DiscountMode, SearchResult: undefined, CartItems: [], TotalAmount: 0});
+			});
+		});
+	} else if (req.body.AddRecord == "true") {
 		SQL_AddDressingRecord.ExecuteQuery(req.body, db_connection, function (DiscMode) {
 			res.redirect('/patient-details/?id=' + req.body.id);
 		});

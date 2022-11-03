@@ -10,85 +10,15 @@
 	<script src="/static/js/bootstrap.bundle.min.js"
     integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
     crossorigin="anonymous"></script>
-  <style>
-    .mt-10 {
-      margin-top: 10px;
-    }
-
-    .pl-pr-5 {
-      padding-left: 5px;
-      padding-right: 5px;
-    }
-    body {
-      padding-bottom: 200px;
-    }
-    input{
-      overflow-y: visible;
-    }
-  </style>
-  <script>
-    function disableCaseNoInput() {
-      if (document.getElementById('caseno').disabled) {
-        document.getElementById('caseno').disabled = false;
-        document.getElementById('caseno').value = "";
-        document.getElementById('caseno').placeholder= "1234";
-      } else {
-        document.getElementById('caseno').disabled = true;
-        document.getElementById('caseno').value = "";
-        document.getElementById('caseno').placeholder = "B22-012345";
-      }
-    }
-  </script>
-  <title>
-    <%= title %>
-  </title>
+  <title><%= title %></title>
 </head>
 
 <body>
   <div class="container">
     <%- include("./partials/header.ejs") %>
-    <div>
-			<% if(DressingAmount == undefined) { %> 
-			<form method="POST">
-				<div class="input-group mb-3">
-					<span class="input-group-text" id="basic-addon1">Dressing Date</span>
-					<input type="date" class="form-control" id="dressdate" name="dressingdate" value="<%= DressingDate %>" style="max-width: 150px;" required>
-				</div>
-				<div class="input-group mb-3">
-					<span class="input-group-text" id="basic-addon1">Pad Quantity</span>
-					<input type="number" class="form-control" id="padqty" name="padquantity" value="<%= PadQuantity %>" style="max-width: 130px;">
-					<select class="form-select" id="padfrac" name="padfraction" style="max-width: 90px;">
-						<% if(PadFraction == "0") { %> 
-							<option value="0" selected>0</option>
-							<option value="1/4">1/4</option>
-							<option value="1/2">1/2</option>
-							<option value="3/4">3/4</option>
-						<% } else if(PadFraction == "1/4") { %> 
-							<option value="0">0</option>
-							<option value="1/4" selected>1/4</option>
-							<option value="1/2">1/2</option>
-							<option value="3/4">3/4</option>
-						<% } else if(PadFraction == "1/2") { %> 
-							<option value="0">0</option>
-							<option value="1/4">1/4</option>
-							<option value="1/2" selected>1/2</option>
-							<option value="3/4">3/4</option>
-						<% } else if(PadFraction == "3/4") { %> 
-							<option value="0">0</option>
-							<option value="1/4">1/4</option>
-							<option value="1/2">1/2</option>
-							<option value="3/4" selected>3/4</option>
-						<% }%> 
-					</select>
-				</div>
-				<button type="submit" class="mt-10 btn btn-primary btn-lg"><svg xmlns="http://www.w3.org/2000/svg"
-						width="30" height="30" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
-						<path
-							d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
-					</svg>Generate Amount
-				</button>
-			</form>
-			<% } else if(DressingAmount != undefined) { %> 
+    <div class="d-flex justify-content-between">
+			<div id="AddDressingPadRecord" style="width: 40%;">
+				<% if(DressingAmount == undefined) { %> 
 				<form method="POST">
 					<div class="input-group mb-3">
 						<span class="input-group-text" id="basic-addon1">Dressing Date</span>
@@ -98,63 +28,185 @@
 						<span class="input-group-text" id="basic-addon1">Pad Quantity</span>
 						<input type="number" class="form-control" id="padqty" name="padquantity" value="<%= PadQuantity %>" style="max-width: 130px;">
 						<select class="form-select" id="padfrac" name="padfraction" style="max-width: 90px;">
-							<% if(PadFraction == "0") { %> 
-								<option value="0" selected>0</option>
-								<option value="1/4">1/4</option>
-								<option value="1/2">1/2</option>
-								<option value="3/4">3/4</option>
-							<% } else if(PadFraction == "1/4") { %> 
-								<option value="0">0</option>
-								<option value="1/4" selected>1/4</option>
-								<option value="1/2">1/2</option>
-								<option value="3/4">3/4</option>
-							<% } else if(PadFraction == "1/2") { %> 
-								<option value="0">0</option>
-								<option value="1/4">1/4</option>
-								<option value="1/2" selected>1/2</option>
-								<option value="3/4">3/4</option>
-							<% } else if(PadFraction == "3/4") { %> 
-								<option value="0">0</option>
-								<option value="1/4">1/4</option>
-								<option value="1/2">1/2</option>
-								<option value="3/4" selected>3/4</option>
-							<% }%> 
+							<option value="0" selected>0</option>
+							<option value="1/4">1/4</option>
+							<option value="1/2">1/2</option>
+							<option value="3/4">3/4</option>
 						</select>
 					</div>
-					<button type="submit" class="mt-10 btn btn-primary btn-lg"><svg xmlns="http://www.w3.org/2000/svg"
+					<button type="submit" name="GetAmount" value="true" class="mt-10 btn btn-primary btn-lg"><svg xmlns="http://www.w3.org/2000/svg"
 							width="30" height="30" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
 							<path
 								d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
 						</svg>Generate Amount
 					</button>
-					<div class="input-group mb-3" style="margin-top: 25px;">
-						<span class="input-group-text" id="basic-addon1">Total Amount : Rs.</span>
-						<input type="number" class="form-control" id="totalamt" name="totalamount" value="<%= DressingAmount %>" style="max-width: 120px;" required>
-					</div>
-					<div class="input-group mb-3" style="margin-top: 10px;">
-						<span class="input-group-text" id="basic-addon1">Amount Paid : Rs.</span>
-						<input type="number" class="form-control" id="paidamt" name="amountpaid" style="max-width: 120px;" required>
-					</div>
-					<% if(DiscountMode != "None") { %> 
-						<div class="input-group mb-3" style="margin-top: 10px;">
-							<span class="input-group-text" id="basic-addon1">Discount : Rs.</span>
-							<input type="number" class="form-control" id="discamt" name="discountamount" style="max-width: 120px;" required>
-						</div>
-					<% } %> 
-					<div class="form-check">
-						<input class="form-check-input" type="checkbox" value="" id="GenReceipt" disabled>
-						<label class="form-check-label" for="GenReceipt">
-						  Generate Receipt
-						</label>
-					</div>
-					<button type="submit" name="id" value="<%= PatientID %>" class="mt-10 btn btn-primary btn-lg"><svg xmlns="http://www.w3.org/2000/svg"
-						width="30" height="30" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
-						<path
-							d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
-					</svg>Add Dressing Record
-					</button>
 				</form>
-			<% } %>
+				<% } else if(DressingAmount != undefined) { %> 
+					<form method="POST">
+						<div class="input-group mb-3">
+							<span class="input-group-text" id="basic-addon1">Dressing Date</span>
+							<input type="date" class="form-control" id="dressdate" name="dressingdate" value="<%= DressingDate %>" style="max-width: 150px;min-width: 75px;" required>
+						</div>
+						<div class="input-group mb-3">
+							<span class="input-group-text" id="basic-addon1">Pad Quantity</span>
+							<input type="number" class="form-control" id="padqty" name="padquantity" value="<%= PadQuantity %>" style="max-width: 130px;min-width: 50px;">
+							<select class="form-select" id="padfrac" name="padfraction" style="max-width: 90px;">
+								<% if(PadFraction == "0") { %> 
+									<option value="0" selected>0</option>
+									<option value="1/4">1/4</option>
+									<option value="1/2">1/2</option>
+									<option value="3/4">3/4</option>
+								<% } else if(PadFraction == "1/4") { %> 
+									<option value="0">0</option>
+									<option value="1/4" selected>1/4</option>
+									<option value="1/2">1/2</option>
+									<option value="3/4">3/4</option>
+								<% } else if(PadFraction == "1/2") { %> 
+									<option value="0">0</option>
+									<option value="1/4">1/4</option>
+									<option value="1/2" selected>1/2</option>
+									<option value="3/4">3/4</option>
+								<% } else if(PadFraction == "3/4") { %> 
+									<option value="0">0</option>
+									<option value="1/4">1/4</option>
+									<option value="1/2">1/2</option>
+									<option value="3/4" selected>3/4</option>
+								<% }%> 
+							</select>
+						</div>
+						<button type="submit" name="GetAmount" value="true" class="mt-10 btn btn-primary btn-lg">
+							<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+								<path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+							</svg>Generate Amount
+						</button>
+					<!-- </form>
+					<form method="POST"> -->
+						<div class="input-group mb-3" style="margin-top: 25px;">
+							<span class="input-group-text" id="basic-addon1">Total Amount : Rs.</span>
+							<input type="number" class="form-control" id="totalamt" name="totalamount" value="<%= DressingAmount %>" style="max-width: 120px;" required>
+						</div>
+						<div class="input-group mb-3" style="margin-top: 10px;">
+							<span class="input-group-text" id="basic-addon1">Amount Paid : Rs.</span>
+							<input type="number" class="form-control" id="paidamt" name="amountpaid" style="max-width: 120px;" required>
+						</div>
+						<% if(DiscountMode != "None") { %> 
+							<div class="input-group mb-3" style="margin-top: 10px;">
+								<span class="input-group-text" id="basic-addon1">Discount : Rs.</span>
+								<input type="number" class="form-control" id="discamt" name="discountamount" style="max-width: 120px;" required>
+							</div>
+						<% } %> 
+						<div class="form-check">
+							<input class="form-check-input" type="checkbox" value="" id="GenReceipt" disabled>
+							<label class="form-check-label" for="GenReceipt">
+								Generate Receipt
+							</label>
+						</div>
+						<button type="submit" name="dressing_pid" value="<%= PatientID %>" class="mt-10 btn btn-primary btn-lg">
+							<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+								<path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+							</svg>Add Dressing Record
+						</button>
+					</form>
+				<% } %>
+			</div>
+			<div id="AddProductsRecord" style="width: 60%;">
+				<div>
+					<% if(CartItems.length == 0) { %> 
+						<p style="font-size: 18px;">Cart is currently empty...</p>
+					<% } else { %> 
+						<table class="table">
+							<thead>
+								<tr>
+									<th scope="col">#</th>
+									<th scope="col">Product Name</th>
+									<th scope="col">Quantity</th>
+									<th scope="col">Item Price</th>
+									<th scope="col">Total Amount</th>
+								</tr>
+							</thead>
+							<% for(let i=0;i<CartItems.length;i+=1) { %>
+								<tbody>
+									<tr>
+										<th scope="row"><%= i+1 %> </th>
+										<td><%= CartItems[i].ProductName %></td>
+										<td>
+											<div class="btn-group" role="group" aria-label="Basic outlined example">
+												<form method="POST">
+													<button type="submit" class="btn" name="decrementQuantity" value="<%= CartItems[i].ProductID %>" style="max-height: 40px;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-dash-circle" viewBox="0 0 16 16">
+														<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+														<path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z"/>
+													</svg></button>
+												</form>
+												<span><p style="margin-left: 15px;margin-right: 15px;margin-top: 5px;font-size: 20px;"><%= CartItems[i].Quantity %></p></span>
+												<form method="POST">
+													<button type="submit" class="btn" name="incrementQuantity" value="<%= CartItems[i].ProductID %>" style="max-height: 40px;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+														<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+														<path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+													</svg></button>
+												</form>
+											</div>
+										</td>
+										<td><%= CartItems[i].ProductPrice %></td>
+										<td><%= CartItems[i].ProductPrice * CartItems[i].Quantity %></td>
+									</tr>
+								</tbody>
+							<% } %>
+						</table>
+						<form method="POST">
+							<p><strong>Total Amount : </strong>Rs. <%= TotalAmount %> </p>
+							<div class="input-group mb-3">
+								<span class="input-group-text" id="basic-addon1">Purchasing Date</span>
+								<input type="date" class="form-control" id="PurchaseDate" name="PurchaseDate" style="max-width: 150px;" required>
+							</div>
+							<div class="form-check">
+								<input class="form-check-input" type="checkbox" value="" id="GenReceipt" disabled>
+								<label class="form-check-label" for="GenReceipt">
+									Generate Receipt
+								</label>
+							</div>
+							<button type="submit" class="btn btn-primary" name="ConfirmCartItems" value="True" style="margin-top: 10px;">Confirm Products</button>
+						</form>
+						<hr>
+					<% } %> 
+				</div>
+				<div style="margin-top: 25px;">
+					<form method="POST">
+						<div class="input-group mb-3">
+							<span class="input-group-text" id="basic-addon1">Product Name</span>
+							<input type="text" class="form-control" id="searchProds" name="searchproducts" style="max-width: 600px;" required>
+							<button class="btn btn-outline-secondary" type="submit" id="button-addon2">Search</button>
+						</div>
+					</form>
+				</div>
+				<div>
+					<% if(SearchResult != undefined) {%> 
+						<% if(SearchResult.length > 0) { %> 
+							<% for(let i = 0;i < SearchResult.length;i += 1) { %> 
+								<form method="POST">
+									<div class="card" style="max-width: 500px;">
+										<div class="card-body">
+												<h5 class="card-title" style="font-size: 24px;"><%= SearchResult[i].ProductName %></h5>
+												<div class="d-flex justify-content-between">
+													<p class="card-text" style="font-size: 18px;"><strong>Price: </strong>Rs. <%= SearchResult[i].ProductPrice %> <span class="card-text" style="margin-left: 25px;"><strong>Quantity: </strong><%= SearchResult[i].Quantity %></span></p>
+													<button class="btn btn-primary" type="submit" name="prodID" value="<%= SearchResult[i].ProductID %> ">Add to cart</button>
+												</div>
+										</div>
+										<% if(SearchResult[i].Quantity <= 5) { %> 
+											<span class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle">
+												<span class="visually-hidden">Quantity is Low</span>
+											</span>
+										<% } %> 
+									</div>
+								</form>
+							<% } %> 
+						<% } else { %> 
+							<div class="alert alert-danger" role="alert">
+								No Results Found
+							</div>
+						<% } %> 
+					<% } %> 
+				</div>
+			</div>
 		</div>
   </div>
 </body>

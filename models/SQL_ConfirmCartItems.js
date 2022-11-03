@@ -9,8 +9,8 @@ function ExecuteQuery(PatientID, PurchaseDate, con, SQL_GetCartList, callback) {
             con.query(DeleteFromCartSQL, function (err, result) {
                 if (err) throw err;
                 console.log(result);
-                var InsertToPaymentsSQL = "INSERT INTO patientpaymentrecord(`PatientID`,`TotalAmount`,`AmountPaid`,`AmountReduction`,`Date`,`AddedBy`) ";
-                InsertToPaymentsSQL += "VALUES(" + PatientID + "," + (cartInfo[i].ProductPrice * cartInfo[i].Quantity) + "," + (cartInfo[i].ProductPrice * cartInfo[i].Quantity) + "," + 0 + ",STR_TO_DATE('" + PurchaseDate + "','%Y-%m-%d'), 'ADMIN');";
+                var InsertToPaymentsSQL = "INSERT INTO patientpaymentrecord(`PatientID`,`TotalAmount`,`AmountPaid`,`AmountReduction`,`Date`) ";
+                InsertToPaymentsSQL += "VALUES(" + PatientID + "," + (cartInfo[i].ProductPrice * cartInfo[i].Quantity) + "," + (cartInfo[i].ProductPrice * cartInfo[i].Quantity) + "," + 0 + ",STR_TO_DATE('" + PurchaseDate + "','%Y-%m-%d'));";
                 console.log(InsertToPaymentsSQL);
                 con.query(InsertToPaymentsSQL, function (err, result) {
                     if (err) throw err;
