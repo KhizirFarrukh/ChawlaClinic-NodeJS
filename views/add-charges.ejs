@@ -43,9 +43,9 @@
               <thead>
                 <tr>
                   <th scope="col">#</th>
-                  <th scope="col">Product Name</th>
+                  <th scope="col">Charges Name</th>
                   <th scope="col">Quantity</th>
-                  <th scope="col">Item Price</th>
+                  <th scope="col">Price</th>
                   <th scope="col">Total Amount</th>
                 </tr>
               </thead>
@@ -80,7 +80,7 @@
             <form method="POST">
               <p><strong>Total Amount : </strong>Rs. <%= TotalAmount %> </p>
               <div class="input-group mb-3">
-                <span class="input-group-text" id="basic-addon1">Purchasing Date</span>
+                <span class="input-group-text" id="basic-addon1">Date</span>
                 <input type="date" class="form-control" id="PurchaseDate" name="PurchaseDate" style="max-width: 150px;" required>
               </div>
               <div class="form-check">
@@ -97,7 +97,7 @@
         <div style="margin-top: 25px;">
             <form method="POST">
                 <div class="input-group mb-3">
-                    <span class="input-group-text" id="basic-addon1">Product Name</span>
+                    <span class="input-group-text" id="basic-addon1">Charges Name</span>
                     <input type="text" class="form-control" id="searchProds" name="searchproducts" style="max-width: 600px;" required>
                     <button class="btn btn-outline-secondary" type="submit" id="button-addon2">Search</button>
                 </div>

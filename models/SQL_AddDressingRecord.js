@@ -3,8 +3,8 @@ function ExecuteQuery(data, con, callback) {
     if(data.discountamount == undefined) {
         data.discountamount = 0;
     }
-    var payment_sql = "INSERT INTO patientpaymentrecord(`PatientID`,`TotalAmount`,`AmountPaid`,`AmountReduction`,`Date`,`AddedBy`) ";
-    payment_sql += "VALUES(" + data.id + "," + data.totalamount + "," + data.amountpaid + "," + data.discountamount + ",STR_TO_DATE('" + data.dressingdate + "','%Y-%m-%d'), 'ADMIN');";
+    var payment_sql = "INSERT INTO patientpaymentrecord(`PatientID`,`TotalAmount`,`AmountPaid`,`AmountReduction`,`Date`) ";
+    payment_sql += "VALUES(" + data.id + "," + data.totalamount + "," + data.amountpaid + "," + data.discountamount + ",STR_TO_DATE('" + data.dressingdate + "','%Y-%m-%d'));";
     console.log(payment_sql);
     con.query(payment_sql, function (err, result) {
         if (err) throw err;

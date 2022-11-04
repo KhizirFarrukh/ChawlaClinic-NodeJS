@@ -242,6 +242,14 @@ app.get('/patient-details/add-general-medicine-record', (req, res) => {
 app.get('/patient-details/general-medicine-records', (req, res) => {
 	res.redirect('/under-construction');
 });
+app.get('/patient-details/add-charges', (req, res) => {
+	res.redirect('/under-construction');
+	// const PatientID = req.query.addID;
+	// SQL_GetCartList.ExecuteQuery(PatientID, db_connection, function (cartInfo, TotalAmount) {
+	// 	console.log(cartInfo);
+	// 	res.render('add-charges', { title: "Add Charges | Patient Details | Chawla Clinic", SearchResult: undefined, CartItems: cartInfo, TotalAmount: TotalAmount });
+	// });
+});
 
 app.get('/patient-details/payment-history', (req, res) => {
 	res.redirect('/under-construction');
