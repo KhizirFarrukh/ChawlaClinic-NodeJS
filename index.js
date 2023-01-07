@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require("body-parser");
 
 const db_connection = require('./models/db_connect');
+
 const SQL_SearchPatient = require('./models/SQL_SearchPatient');
 const SQL_AddPatient = require('./models/SQL_AddPatient');
 const SQL_GetPadPricing = require('./models/SQL_GetPadPricing');
@@ -21,6 +22,11 @@ const SQL_AddTokenInfo = require('./models/SQL_AddTokenInfo');
 const SQL_ResetTokenData = require('./models/SQL_ResetTokenData');
 const SQL_AddDressingTempRecord = require('./models/SQL_AddDressingTempRecord');
 const SQL_GetTempDressingRecord = require('./models/SQL_GetTempDressingRecord');
+
+const GetPaymentBreakdown = require('./models/GetPaymentBreakdown');
+const GetDressingDetails = require('./models/GetDressingDetails');
+const GetOintmentDetails = require('./models/GetOintmentDetails');
+const GetProductDetails = require('./models/GetProductDetails');
 
 const app = express();
 
@@ -74,17 +80,32 @@ app.get('/patient-details', (req, res) => {
 				SQL_GetCurrentBalance.ExecuteQuery(PatientID, db_connection, function (bal) {
 					var CurrentBalance = bal[0].paid + bal[0].discount - bal[0].total;
 					console.log(CurrentBalance);
-					SQL_GetProductsDetails.ExecuteQuery(PatientID, true, db_connection, function (prodPurchaseInfo) {
-						console.log(prodPurchaseInfo);
-						if (data[0].Type == 'B') {
-							SQL_GetDressingDetails.ExecuteQuery(PatientID, true, db_connection, function (dressInfo) {
-								console.log(dressInfo);
-								res.render('patient-details', { title: "Patient Details | Chawla Clinic", PatientDetails: data, EditMode: editMode, Balance: CurrentBalance, ProductsPurchasingInfo: prodPurchaseInfo, DressingInfo: dressInfo });
+					GetPaymentBreakdown.ExecuteQuery(PatientID, true, db_connection, function (paymentDetails) {
+						console.log("check",paymentDetails);
+						GetDressingDetails.ExecuteQuery(PatientID, true, db_connection, function (dressingDetails) {
+							console.log("check",dressingDetails);
+							GetOintmentDetails.ExecuteQuery(PatientID, true, db_connection, function (ointmentDetails) {
+								console.log("check",ointmentDetails);
+								GetProductDetails.ExecuteQuery(PatientID, true, db_connection, function (productDetails) {
+									console.log("check",productDetails);
+									res.render('patient-details', { title: "Patient Details | Chawla Clinic", PatientDetails: data, EditMode: editMode, 
+																									Balance: CurrentBalance, PaymentDetails : paymentDetails , DressingDetails : dressingDetails,
+																									OintmentDetails : ointmentDetails, ProductDetails : productDetails});
+								});
 							});
-						} else if (data[0].Type == 'G') {
-							res.render('patient-details', { title: "Patient Details | Chawla Clinic", PatientDetails: data, EditMode: editMode, Balance: CurrentBalance, ProductsPurchasingInfo: prodPurchaseInfo });
-						}
+						});
 					});
+					// SQL_GetProductsDetails.ExecuteQuery(PatientID, true, db_connection, function (prodPurchaseInfo) {
+					// 	console.log(prodPurchaseInfo);
+					// 	if (data[0].Type == 'B') {
+					// 		SQL_GetDressingDetails.ExecuteQuery(PatientID, true, db_connection, function (dressInfo) {
+					// 			console.log(dressInfo);
+					// 			res.render('patient-details', { title: "Patient Details | Chawla Clinic", PatientDetails: data, EditMode: editMode, Balance: CurrentBalance, ProductsPurchasingInfo: prodPurchaseInfo, DressingInfo: dressInfo });
+					// 		});
+					// 	} /* else if (data[0].Type == 'G') {
+					// 		res.render('patient-details', { title: "Patient Details | Chawla Clinic", PatientDetails: data, EditMode: editMode, Balance: CurrentBalance, ProductsPurchasingInfo: prodPurchaseInfo });
+					// 	} */
+					// });
 				});
 			} else if (data.length == 0) {
 				res.render('patient-details', { title: "Patient Details | Chawla Clinic", PatientDetails: data });

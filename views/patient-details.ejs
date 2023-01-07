@@ -311,7 +311,8 @@
 					<div style="margin-top: 20px;">
 						<h4>Payment Details</h4>
 					</div>
-					<% if(DressingInfo.length > 0) { %> 
+					<% //if(DressingInfo.length > 0) { %> 
+					<% if(false) { %> 
 						<div class="DressingDetails">
 							<table class="table">
 								<thead>
@@ -325,20 +326,20 @@
 									</tr>
 								</thead>
 								<tbody>
-									<% for(let i = 0; i < DressingInfo.length ; i += 1) { %>
+									<% //for(let i = 0; i < DressingInfo.length ; i += 1) { %>
 										<tr>
-											<th scope="row"><%= i+1 %></th>
-											<td><%= DressingInfo[i].Date.toLocaleDateString("en-UK") %></td>
-											<td><%= DressingInfo[i].QtyOfPads %></td>
-											<td><%= DressingInfo[i].TotalAmount %></td>
-											<% if(DressingInfo[i].DiscountOption != null) { %> 
-												<td><%= DressingInfo[i].AmountReduction %> (<%= DressingInfo[i].DiscountOption %>)</td>
-											<% } else { %> 
-												<td><%= DressingInfo[i].AmountReduction %></td>
-											<% } %> 
-											<td><%= DressingInfo[i].AmountPaid %></td>
+											<th scope="row"><%= //i+1 %></th>
+											<td><%= //DressingInfo[i].Date.toLocaleDateString("en-UK") %></td>
+											<td><%= //DressingInfo[i].QtyOfPads %></td>
+											<td><%= //DressingInfo[i].TotalAmount %></td>
+											<% //if(DressingInfo[i].DiscountOption != null) { %> 
+												<td><%= //DressingInfo[i].AmountReduction %> (<%= DressingInfo[i].DiscountOption %>)</td>
+											<% //} else { %> 
+												<td><%= //DressingInfo[i].AmountReduction %></td>
+											<% //} %> 
+											<td><%= //DressingInfo[i].AmountPaid %></td>
 										</tr>
-									<% } %>
+									<% //} %>
 								</tbody>
 							</table>
 							<a type="button" href="/patient-details/dressing-records?id=<%= PatientDetails.PatientID %>" class="mt-10 btn btn-primary">
@@ -349,7 +350,6 @@
 							</a>
 						</div>
 					<% } else { %>
-						<p style="font-style: italic;color:gray;">Sample Data (for designing purpose)</p>
 						<table class="table">
 							<thead>
 								<tr>
@@ -357,129 +357,118 @@
 									<th scope="col">Date</th>
 									<th scope="col">Dressing Charges</th>
 									<th scope="col">Ointment Charges</th>
-									<th scope="col">Other Charges</th>
+									<th scope="col">Product Charges</th>
 									<th scope="col">Total Amount</th>
 									<th scope="col">Discount</th>
 									<th scope="col">Amount Paid</th>
 								</tr>
 							</thead>
 							<tbody class="accordion" id="DressingRecords">
-								<tr class="accordion-item">
-									<th scope="row">1</th>
-									<td>02-01-2022</td>
-									<td>4200</td>
-									<td>1900</td>
-									<td>1200</td>
-									<td>7300</td>
-									<td>0</td>
-									<td>7000</td>
-									<td class="accordion-header" id="DressingRecord1Details">
-										<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne" style="max-height:10px;">
-											See Details...
-										</button>
-									</td>
-								</tr>
-								<tr>
-									<td colspan="9">
-										<div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="DressingRecord1Details" data-bs-parent="#DressingRecords">
-											<div class="accordion-body" style="background-color: #F5F5F5;">
-												<p><strong>Qty of Pads: </strong>5.25</p>
-												<table class="table table-striped">
-													<thead>
-														<th>Ointment Name</th>
-														<th>Quantity</th>
-														<th>Price</th>
-														<th>Total Amount</th>
-													</thead>
-													<tbody>
-														<tr>
-															<td>Burnaid</td>
-															<td>2</td>
-															<td>600</td>
-															<td>1200</td>
-														</tr>
-														<tr>
-															<td>Burnaid Plus AC</td>
-															<td>1</td>
-															<td>700</td>
-															<td>700</td>
-														</tr>
-													</tbody>
-												</table>
-												<table class="table table-striped">
-													<thead>
-														<th>Other Items Name</th>
-														<th>Quantity</th>
-														<th>Price</th>
-														<th>Total Amount</th>
-													</thead>
-													<tbody>
-														<tr>
-															<td>Super Sonic Syrup</td>
-															<td>1</td>
-															<td>1200</td>
-															<td>1200</td>
-														</tr>
-													</tbody>
-												</table>
-												<table class="table table-striped">
-													<thead>
-														<th>Charges</th>
-														<th>Price</th>
-													</thead>
-													<tbody>
-														<tr>
-															<td>Doctor checkup fees</td>
-															<td>250</td>
-														</tr>
-														<tr>
-															<td>Injection</td>
-															<td>100</td>
-														</tr>
-														<tr>
-															<td>Home Service</td>
-															<td>850</td>
-														</tr>
-													</tbody>
-												</table>
+								<!-- <p>hello <%= //PaymentDetails.length %></p> -->
+								<% for(var i = 0; i < PaymentDetails.length; i++ ) { %> 
+									<tr class="accordion-item">
+										<% if(PaymentDetails[i].DressingCharges == null) { PaymentDetails[i].DressingCharges = 0 } %>
+										<% if(PaymentDetails[i].OintmentCharges == null) { PaymentDetails[i].OintmentCharges = 0 } %>
+										<% if(PaymentDetails[i].ProductCharges == null) { PaymentDetails[i].ProductCharges = 0 } %>
+										<% var theDate = new Date(PaymentDetails[i].Date);
+												PaymentDetails[i].Date = String(theDate.getDate()).padStart(2, '0' ) + "-" + String(theDate.getMonth() + 1).padStart(2, '0' ) + "-" + theDate.getFullYear(); %>
+										<th scope="row"><%= i+1 %></th>
+										<td><%= PaymentDetails[i].Date %></td>
+										<td><%= PaymentDetails[i].DressingCharges %></td>
+										<td><%= PaymentDetails[i].OintmentCharges %></td>
+										<td><%= PaymentDetails[i].ProductCharges %></td>
+										<td><%= PaymentDetails[i].TotalAmount %></td>
+										<td><%= PaymentDetails[i].Discount %></td>
+										<td><%= PaymentDetails[i].AmountPaid %></td>
+										<td class="accordion-header" id="PaymentRecord<%= i %>Details">
+											<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<%= i %>" aria-expanded="false" aria-controls="collapse<%= i %>" style="max-height:10px;">
+												See Details...
+											</button>
+										</td>
+									</tr>
+									<tr>
+										<td colspan="9">
+											<div id="collapse<%= i %>" class="accordion-collapse collapse" aria-labelledby="PaymentRecord<%= i %>Details" data-bs-parent="#PaymentRecords">
+												<div class="accordion-body" style="background-color: #F5F5F5;">
+													<% var padQty = DressingDetails.find(obj => obj.PaymentID === PaymentDetails[i].PaymentID).QtyOfPads;
+														if(padQty != null) { %> 
+															<p><strong>Qty of Pads: </strong><%= padQty //DressingDetails[i].QtyOfPads %></p>
+													<% } %>
+													<% if(PaymentDetails[i].OintmentCharges != 0) { %> 
+														<table class="table table-striped">
+															<thead>
+																<th>Ointment Name</th>
+																<th>Quantity</th>
+																<th>Price</th>
+																<th>Total Amount</th>
+															</thead>
+															<tbody>
+																<% for(var j = 0; j < OintmentDetails.length; j++ ) { %> 
+																	<% if(OintmentDetails[j].PaymentID == PaymentDetails[i].PaymentID && OintmentDetails[j].ProductName != null) { %>
+																		<tr>
+																			<td><%= OintmentDetails[j].ProductName %></td>
+																			<td><%= OintmentDetails[j].Quantity %></td>
+																			<td><%= OintmentDetails[j].Amount / OintmentDetails[j].Quantity %></td>
+																			<td><%= OintmentDetails[j].Amount %></td>
+																		</tr>
+																	<% } %>  
+																<% } %>
+															</tbody>
+														</table>
+													<% } %>
+													<% if(PaymentDetails[i].ProductCharges != 0) { %>
+														<table class="table table-striped">
+															<thead>
+																<th>Items Name</th>
+																<th>Quantity</th>
+																<th>Price</th>
+																<th>Total Amount</th>
+															</thead>
+															<tbody>
+																<% for(var j = 0; j < ProductDetails.length; j++ ) { %> 
+																	<% if(ProductDetails[j].PaymentID == PaymentDetails[i].PaymentID && ProductDetails[j].ProductName != null) { %>
+																		<tr>
+																			<td><%= ProductDetails[j].ProductName %></td>
+																			<td><%= ProductDetails[j].Quantity %></td>
+																			<td><%= ProductDetails[j].Amount / ProductDetails[j].Quantity %></td>
+																			<td><%= ProductDetails[j].Amount %></td>
+																		</tr>
+																	<% } %>  
+																<% } %>
+															</tbody>
+														</table>
+													<% } %>
+													<table class="table table-striped">
+														<thead>
+															<th>Charges</th>
+															<th>Price</th>
+														</thead>
+														<tbody>
+															<tr>
+																<td>Doctor checkup fees</td>
+																<td>250</td>
+															</tr>
+															<tr>
+																<td>Injection</td>
+																<td>100</td>
+															</tr>
+															<tr>
+																<td>Home Service</td>
+																<td>850</td>
+															</tr>
+														</tbody>
+													</table>
+												</div>
 											</div>
-										</div>
-									</td>
-								</tr>
-								<tr class="accordion-item">
-									<th scope="row">2</th>
-									<td>01-01-2022</td>
-									<td>4000</td>
-									<td>0</td>
-									<td>0</td>
-									<td>4000</td>
-									<td>0</td>
-									<td>4300</td>
-									<td class="accordion-header" id="DressingRecord2Details">
-										<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo" style="max-height:10px;">
-											See Details...
-										</button>
-									</td>
-								</tr>
-								<tr>
-									<td colspan="9">
-										<div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="DressingRecord2Details" data-bs-parent="#DressingRecords">
-											<div class="accordion-body" style="background-color: #EEEEEE;">
-												<p><strong>Qty of Pads: </strong>5</p>
-												<!-- No Ointment purchased and no products purchased so no details of them -->
-											</div>
-										</div>
-									</td>
-								</tr>
+										</td>
+									</tr>
+								<% } %> 
 							</tbody>
 						</table>
-						<div class="alert alert-danger" role="alert">
-							No Record Found
-						</div>
 					<% } %>  
 				</div>
 				<hr>
-			<% } else if(PatientDetails.Type=='G' ) {%>
+			<% } else if(PatientDetails.Type=='G' ) { %>
 				<!-- <div class="alert alert-danger" role="alert">
 					This feature is under development
 				</div>
