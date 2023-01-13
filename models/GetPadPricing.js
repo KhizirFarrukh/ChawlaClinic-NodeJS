@@ -11,9 +11,18 @@ function ExecuteQuery(padQty, padFraction, con, callback) {
         }
     }
     console.log(sql)
-    con.query(sql, function (err, result, fields) {
+    con.query(sql, function (err, result) {
         if (err) throw err;
-        callback(result);
+        console.log(result);
+        var PadPrice = 0;
+        PadPrice += result.find(object => object.ProductName === "Dressing Pad 1").ProductPrice * parseInt(padQty);
+        if(padFraction != "0") {
+            // const [numerator, denominator] = padFraction.split('/');
+            // const padFractionValue = parseInt(numerator) / parseInt(denominator);
+            PadPrice += result.find(object => object.ProductName.includes("Dressing Pad " + padFraction)).ProductPrice; 
+        }
+
+        callback(PadPrice);
     });
 }
 module.exports = { ExecuteQuery };

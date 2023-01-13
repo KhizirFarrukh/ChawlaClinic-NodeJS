@@ -16,7 +16,7 @@ function ExecuteQuery(table, attrib, val, con, callback) {
     }
     sql += " ORDER BY FirstVisit DESC LIMIT 10;";
     console.log(sql)
-    con.query(sql, function (err, result, fields) {
+    con.query(sql, function (err, result) {
         if (err) throw err;
         callback(result);
     });

@@ -3,7 +3,7 @@ const mysql = require('mysql');
 function ExecuteQuery(data, con, callback) {
     // validation check on value for sql injection
     // change from select all to select specific attributes
-    var sql = "INSERT INTO patientdetails(`CaseNo`,`Type`,`PatientName`,`Age`,`Gender`,`GuardianName`,`Disease`,`Address`,`PhoneNumber`,`FirstVisit`,`AddedBy`)";
+    var sql = "INSERT INTO patientdetails(`CaseNo`,`Type`,`PatientName`,`Age`,`Gender`,`GuardianName`,`Disease`,`Address`,`PhoneNumber`,`FirstVisit`)";
     // var CaseNo = data.caseno;
     var Type = data.type;
     var PatientName = data.patientname;
@@ -18,7 +18,6 @@ function ExecuteQuery(data, con, callback) {
     var Address = data.address;
     var PhoneNumber = data.phonenum;
     var FirstVisit = data.firstvisit;
-    var AddedBy = "ADMIN"; //Change when account management is implemented
     
     var NewCaseNo = "";
     var CaseNoFetchParam = String((new Date(data.firstvisit)).getFullYear()%100) + data.type + "-";
@@ -33,7 +32,7 @@ function ExecuteQuery(data, con, callback) {
             NewCaseNo += String(parseInt(result[0].CaseCount)).padStart(2,'0') + data.caseno;
             console.log(NewCaseNo);
             sql += " VALUES('" + NewCaseNo + "','" + Type + "','" + PatientName + "'," + Age + ",'" + Gender + "','" + GuardianName + "','" + Disease + "','" + Address;
-            sql += "','" + PhoneNumber + "',STR_TO_DATE('" + FirstVisit + "','%Y-%m-%d'),'" + AddedBy + "');";
+            sql += "','" + PhoneNumber + "',STR_TO_DATE('" + FirstVisit + "','%Y-%m-%d'));";
             console.log(sql);
             con.query(sql, function (err, result, fields) {
                 if (err) throw err;
@@ -50,7 +49,7 @@ function ExecuteQuery(data, con, callback) {
                 NewCaseNo += String(1).padStart(6,'0');
                 console.log(NewCaseNo);
                 sql += " VALUES('" + NewCaseNo + "','" + Type + "','" + PatientName + "'," + Age + ",'" + Gender + "','" + GuardianName + "','" + Disease + "','" + Address;
-                sql += "','" + PhoneNumber + "',STR_TO_DATE('" + FirstVisit + "','%Y-%m-%d'),'" + AddedBy + "');";
+                sql += "','" + PhoneNumber + "',STR_TO_DATE('" + FirstVisit + "','%Y-%m-%d'));";
                 console.log(sql);
                 con.query(sql, function (err, result, fields) {
                     if (err) throw err;
@@ -60,7 +59,7 @@ function ExecuteQuery(data, con, callback) {
                 NewCaseNo += String(parseInt((result[0].CaseMax).slice(4,10)) + 1).padStart(6,'0');
                 console.log(NewCaseNo);
                 sql += " VALUES('" + NewCaseNo + "','" + Type + "','" + PatientName + "'," + Age + ",'" + Gender + "','" + GuardianName + "','" + Disease + "','" + Address;
-                sql += "','" + PhoneNumber + "',STR_TO_DATE('" + FirstVisit + "','%Y-%m-%d'),'" + AddedBy + "');";
+                sql += "','" + PhoneNumber + "',STR_TO_DATE('" + FirstVisit + "','%Y-%m-%d'));";
                 console.log(sql);
                 con.query(sql, function (err, result, fields) {
                     if (err) throw err;
