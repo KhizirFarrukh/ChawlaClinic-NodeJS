@@ -20,19 +20,6 @@ function ExecuteQuery(PatientID, PurchaseDate, AmountPaid, AmountReduction, Disc
             console.log(InsertToPaymentsSQL);
             con.query(InsertToPaymentsSQL, function (err, result) {
                 if (err) throw err;
-<<<<<<< HEAD
-                console.log(result);
-                var InsertToPaymentsSQL = "INSERT INTO patientpaymentrecord(`PatientID`,`TotalAmount`,`AmountPaid`,`AmountReduction`,`Date`) ";
-                InsertToPaymentsSQL += "VALUES(" + PatientID + "," + (cartInfo[i].ProductPrice * cartInfo[i].Quantity) + "," + (cartInfo[i].ProductPrice * cartInfo[i].Quantity) + "," + 0 + ",STR_TO_DATE('" + PurchaseDate + "','%Y-%m-%d'));";
-                console.log(InsertToPaymentsSQL);
-                con.query(InsertToPaymentsSQL, function (err, result) {
-                    if (err) throw err;
-                    console.log(result);
-                    console.log(result.insertId);
-                    var PaymentID = result.insertId;
-                    var InsertToPurchasesSQL = "INSERT INTO patientproductpurchasehistory(`PatientID`,`ProductID`,`PaymentID`,`Quantity`) ";
-                    InsertToPurchasesSQL += "VALUES(" + PatientID + "," + cartInfo[i].ProductID + "," + PaymentID + "," + cartInfo[i].Quantity + ");";
-=======
                 // console.log(result);
                 console.log(result.insertId);
                 var PaymentID = result.insertId;
@@ -47,7 +34,6 @@ function ExecuteQuery(PatientID, PurchaseDate, AmountPaid, AmountReduction, Disc
                 if(cartInfo.length > 0) {
                     var InsertToPurchasesSQL = "INSERT INTO patientproductspurchased(`PaymentID`,`TotalAmount`) ";
                     InsertToPurchasesSQL += "VALUES(" + PaymentID + "," + CartTotalAmount + ");";
->>>>>>> patientdetails
                     console.log(InsertToPurchasesSQL);
                     con.query(InsertToPurchasesSQL, function (err, result) {
                         if (err) throw err;
