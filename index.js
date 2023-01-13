@@ -6,9 +6,9 @@ const { exec } = require('child_process');
 
 const SQL_ConfirmCartItems = require('./models/SQL_ConfirmCartItems');
 
-const SQL_AddTokenInfo = require('./models/SQL_AddTokenInfo');
-const SQL_GetTokenInfo = require('./models/SQL_GetTokenInfo');
-const SQL_ResetTokenData = require('./models/SQL_ResetTokenData');
+// const SQL_AddTokenInfo = require('./models/SQL_AddTokenInfo');
+// const SQL_GetTokenInfo = require('./models/SQL_GetTokenInfo');
+// const SQL_ResetTokenData = require('./models/SQL_ResetTokenData');
 
 
 const AddPatient = require('./models/AddPatient');
@@ -108,9 +108,8 @@ app.get('/patient', (req, res) => {
 
 app.post('/patient', (req, res) => {
 	console.log('req body',req.body);
-	const AddPatient = req.body.AddPatient;
 	const BackupDB = req.body.BackupDatabase;
-	if(AddPatient != undefined) {
+	if(req.body.AddPatient != undefined) {
 		AddPatient.ExecuteQuery(req.body, db_connection, function (data) {
 			res.redirect('/patient-details?id=' + data.insertId);
 			// res.render('patient', {title: "Patient | Chawla Clinic",searchResult:undefined});
