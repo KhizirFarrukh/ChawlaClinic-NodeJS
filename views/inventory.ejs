@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="/static/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+	<link rel="stylesheet" href="/static/css/bootstrap-icons.css">
+	<script src="/static/js/bootstrap.bundle.min.js"
+    integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+    crossorigin="anonymous"></script>
+
+  <title>
+    <%= title %>
+  </title>
+</head>
+
+<body>
+  <div class="container">
+    <%- include("./partials/header.ejs") %>
+    <div id="Inventory">
+      <div class="d-flex justify-content-around">
+        <div id="AddProductDiv">
+          <form method="post">
+            <label for="AddProductInput">Add new Product</label>
+            <div class="input-group flex-nowrap mt-10">
+              <input type="text" class="form-control" id="AddProductInput" name="AddProduct" style="width: 500px;max-width: 500px;" placeholder="Product Name" required>
+              <select class="form-select" required>
+                <option value="" selected>Select a category</option>
+                <% for(let i = 0; i < Categories.length; i++) { %>
+                  <option value="<%= Categories[i].CategoryID %>"><%= Categories[i].CategoryName %></option>
+                <% } %>
+              </select>
+              <button class="btn btn-primary" type="submit" id="button-addon2" style="width: 70px;">Add</button>
+            </div>
+          </form>
+        </div>
+        <div id="AddCategoryDiv">
+          <form method="post">
+            <label for="AddCategoryInput">Add new Category</label>
+            <div class="input-group flex-nowrap mt-10">
+              <input type="text" class="form-control" id="AddCategoryInput" name="AddCategory" style="max-width: 300px;" placeholder="Category Name">
+              <button class="btn btn-primary" type="submit" id="button-addon2" style="width: 70px;">Add</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <hr>
+        <!-- <table class="table">
+          <thead>
+            <tr>
+              <th>col1</th>
+              <th>col2</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>hello 1: <a href="https://www.google.com">redirect</a></td>
+              <td>hello 2: <a href="https://www.google.com">redirect</a></td>
+            </tr>
+          </tbody>
+        </table> -->
+      
+    </div>
+  </div>
+</body>
+</html>
