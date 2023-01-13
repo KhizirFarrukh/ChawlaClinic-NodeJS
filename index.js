@@ -34,6 +34,8 @@ const CartManagement = require('./models/CartManagement');
 const GetCartList = require('./models/GetCartList');
 const SearchProducts = require('./models/SearchProducts');
 
+const GetProductCategories = require('./models/GetProductCategories');
+
 function AddPaymentRecordCartGet(PatientID,searchResult,discountOption,res) {
 	GetCartList.ExecuteQuery(PatientID, db_connection, function (cartInfo, TotalAmount) {
 		console.log(cartInfo);
@@ -286,62 +288,6 @@ app.post('/patient-details/add-payment-record', (req, res) => {
 //     res.render('add-general-medicine-record', {title: "Add Patient General Medicine Record | Chawla Clinic"});
 // });
 
-// app.get('/patient-details/add-products', (req, res) => {
-// 	const PatientID = req.query.addID;
-// 	GetCartList.ExecuteQuery(PatientID, db_connection, function (cartInfo, TotalAmount) {
-// 		console.log(cartInfo);
-// 		res.render('add-products', { title: "Add Products | Patient Details | Chawla Clinic", SearchResult: undefined, CartItems: cartInfo, TotalAmount: TotalAmount });
-// 	});
-// });
-
-// app.post('/patient-details/add-products', (req, res) => {
-// 	const PatientID = req.query.addID;
-// 	const BackupDB = req.body.BackupDatabase;
-// 	console.log(req.body);
-// 	console.log(req.query.addID);
-
-// 	if (req.body.incrementQuantity != undefined) {
-// 		CartManagement.ExecuteQuery(req.body.incrementQuantity, PatientID, 1, db_connection, function (result) {
-// 			console.log(result);
-// 			GetCartList.ExecuteQuery(PatientID, db_connection, function (cartInfo, TotalAmount) {
-// 				console.log(cartInfo);
-// 				res.render('add-products', { title: "Add Products | Patient Details | Chawla Clinic", SearchResult: undefined, CartItems: cartInfo, TotalAmount: TotalAmount });
-// 			});
-// 		});
-// 	} else if (req.body.decrementQuantity != undefined) {
-// 		CartManagement.ExecuteQuery(req.body.decrementQuantity, PatientID, -1, db_connection, function (result) {
-// 			console.log(result);
-// 			GetCartList.ExecuteQuery(PatientID, db_connection, function (cartInfo, TotalAmount) {
-// 				console.log(cartInfo);
-// 				res.render('add-products', { title: "Add Products | Patient Details | Chawla Clinic", SearchResult: undefined, CartItems: cartInfo, TotalAmount: TotalAmount });
-// 			});
-// 		});
-// 	} else if (req.body.ConfirmCartItems != undefined) {
-// 		SQL_ConfirmCartItems.ExecuteQuery(PatientID, req.body.PurchaseDate, db_connection, GetCartList, 0, function () {
-// 			res.redirect('/patient-details/?id=' + PatientID);
-// 		});
-// 	} else if (req.body.prodID != undefined) {
-// 		CartManagement.ExecuteQuery(req.body.prodID, PatientID, 1, db_connection, function (result) {
-// 			console.log(result);
-// 			GetCartList.ExecuteQuery(PatientID, db_connection, function (cartInfo, TotalAmount) {
-// 				console.log(cartInfo);
-// 				res.render('add-products', { title: "Add Products | Patient Details | Chawla Clinic", SearchResult: undefined, CartItems: cartInfo, TotalAmount: TotalAmount });
-// 			});
-// 		});
-// 	} else if (req.body.searchproducts != undefined) {
-// 		SearchProducts.ExecuteQuery(req.body.searchproducts, db_connection, function (searchResult) {
-// 			console.log(searchResult);
-// 			GetCartList.ExecuteQuery(PatientID, db_connection, function (cartInfo, TotalAmount) {
-// 				console.log(cartInfo);
-// 				res.render('add-products', { title: "Add Products | Patient Details | Chawla Clinic", SearchResult: searchResult, CartItems: cartInfo, TotalAmount: TotalAmount });
-// 			});
-// 		});
-// 	} else if(BackupDB != undefined) {
-// 		BackupDatabase();
-// 		res.redirect('back');
-// 	}
-// });
-
 app.get('/patient-details/add-general-medicine-record', (req, res) => {
 	res.redirect('/under-construction');
 });
@@ -418,7 +364,23 @@ app.get('/token-generation', (req, res) => {
 // });
 
 app.get('/inventory', (req, res) => {
-	res.redirect('/under-construction');
+	console.log(req.query);
+	GetProductCategories.ExecuteQuery(db_connection,function(categories){
+		console.log(categories);
+		res.render('inventory', { title: "Inventory | Chawla Clinic", Categories:categories});
+	})
+	
+	// res.redirect('/under-construction');
+});
+
+app.post('/inventory', (req, res) => {
+	console.log(req.query);
+	console.log(req.body);
+	
+	GetProductCategories.ExecuteQuery(db_connection,function(categories){
+		console.log(categories);
+		res.render('inventory', { title: "Inventory | Chawla Clinic", Categories:categories});
+	})
 });
 
 app.get('/account-management', (req, res) => {
