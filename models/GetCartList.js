@@ -7,7 +7,7 @@ function GetTotalAmount(SQL_Result, callback) {
     callback(TotalAmount);
 }
 function ExecuteQuery(PatientID, con, callback) {
-    var sql = "SELECT prod.ProductID, prod.ProductName, cart.Quantity, prod.ProductPrice FROM products prod JOIN patientcart cart on prod.ProductID = cart.ProductID where cart.PatientID = " + PatientID + ";";
+    var sql = "SELECT prod.ProductID, prod.ProductName, cart.Quantity, prod.ProductPrice FROM products prod JOIN patientproductscart cart on prod.ProductID = cart.ProductID where cart.PatientID = " + PatientID + ";";
     console.log(sql)
     con.query(sql, function (err, result) {
         if (err) throw err;

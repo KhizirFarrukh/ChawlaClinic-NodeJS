@@ -6,9 +6,9 @@ function ExecuteQuery(id, retrieveLimit, con, callback) {
   var ointment_sql = "";
 
   if(retrieveLimit == true ) {
-    products_sql = "SELECT prod.ProductName, proditem.Quantity, proditem.Amount, pay.PaymentID FROM products prod JOIN patientotherprodspurchased proditem on prod.ProductID = proditem.ProductID JOIN patientproductspurchased prodpurchase ON proditem.PurchaseID = prodpurchase.PurchaseID RIGHT JOIN patientpaymentrecord pay ON prodpurchase.PaymentID = pay.PaymentID JOIN (SELECT PaymentID FROM patientpaymentrecord WHERE PatientID = " + id + " LIMIT 5) AS subq ON subq.PaymentID = pay.PaymentID WHERE pay.PatientID = " + id;
+    products_sql = "SELECT prod.ProductName, proditem.Quantity, proditem.Amount, pay.PaymentID FROM products prod JOIN patientotherprodspurchased proditem on prod.ProductID = proditem.ProductID JOIN patientproductspurchased prodpurchase ON proditem.PurchaseID = prodpurchase.PurchaseID RIGHT JOIN patientpaymentrecord pay ON prodpurchase.PaymentID = pay.PaymentID JOIN (SELECT PaymentID FROM patientpaymentrecord WHERE PatientID = " + id + " ORDER BY PaymentID DESC LIMIT 5) AS subq ON subq.PaymentID = pay.PaymentID WHERE pay.PatientID = " + id + " ORDER BY pay.PaymentID DESC;";
   } else {
-    products_sql = "SELECT prod.ProductName, proditem.Quantity, proditem.Amount, pay.PaymentID FROM products prod JOIN patientotherprodspurchased proditem on prod.ProductID = proditem.ProductID JOIN patientproductspurchased prodpurchase ON oint.PurchaseID = prodpurchase.PurchaseID RIGHT JOIN patientpaymentrecord pay ON prodpurchase.PaymentID = pay.PaymentID WHERE pay.PatientID = " + id;
+    products_sql = "SELECT prod.ProductName, proditem.Quantity, proditem.Amount, pay.PaymentID FROM products prod JOIN patientotherprodspurchased proditem on prod.ProductID = proditem.ProductID JOIN patientproductspurchased prodpurchase ON proditem.PurchaseID = prodpurchase.PurchaseID RIGHT JOIN patientpaymentrecord pay ON prodpurchase.PaymentID = pay.PaymentID WHERE pay.PatientID = " + id + " ORDER BY pay.PaymentID DESC;";
   }
 
   console.log(products_sql);

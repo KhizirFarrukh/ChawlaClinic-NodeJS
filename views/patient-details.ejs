@@ -109,7 +109,7 @@
 				</div>
 				<div class="wrapper">
 					<h4>Description</h4>
-					<div class="alert alert-danger" role="alert">
+					<div class="alert alert-info" role="alert">
 						This feature is under development
 					</div>
 					<!-- <textarea class="form-control-plaintext" id="DescriptionTextAreaReadOnly" rows="5" readonly style="padding-left: 10px;padding-right: 5px;" placeholder="Enter Patient Description here..."></textarea> -->
@@ -126,9 +126,6 @@
 									d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z" />
 							</svg> Edit</button>
 					</form>
-				</div>
-				<div style="margin-top: 10px;">
-					<a href="/patient-details/payment-history?id=<%= PatientDetails.PatientID %>" type="button" class="btn btn-primary">View All Payments</a>
 				</div>
 				<hr>
 				<% if(PatientDetails.Status=="ACTIVE") { %> 
@@ -286,7 +283,7 @@
 					</div>
 					<div class="wrapper">
 						<h4>Description</h4>
-						<div class="alert alert-danger" role="alert">
+						<div class="alert alert-info" role="alert">
 							This feature is under development
 						</div>
 						<!-- <textarea class="form-control-plaintext" id="DescriptionTextArea" rows="5" style="padding-left: 10px;padding-right: 5px;" placeholder="Enter Patient Description here..."></textarea> -->
@@ -308,9 +305,15 @@
 							
 						<% } %> 
 					</div>
-					<div style="margin-top: 20px;">
-						<h4>Payment Details</h4>
+					<div class="d-flex justify-content-between" style="margin-top: 20px;">
+						<div>
+							<h4>Payment Details</h4>
+						</div>
+						<div>
+							<a href="/patient-details/payment-records?id=<%= PatientDetails.PatientID %>" type="button" class="btn btn-primary">View All Payments</a>
+						</div>
 					</div>
+					
 					<% //if(DressingInfo.length > 0) { %> 
 					<% if(false) { %> 
 						<div class="DressingDetails">
@@ -364,7 +367,6 @@
 								</tr>
 							</thead>
 							<tbody class="accordion" id="DressingRecords">
-								<!-- <p>hello <%= //PaymentDetails.length %></p> -->
 								<% for(var i = 0; i < PaymentDetails.length; i++ ) { %> 
 									<tr class="accordion-item">
 										<% if(PaymentDetails[i].DressingCharges == null) { PaymentDetails[i].DressingCharges = 0 } %>
@@ -390,9 +392,17 @@
 										<td colspan="9">
 											<div id="collapse<%= i %>" class="accordion-collapse collapse" aria-labelledby="PaymentRecord<%= i %>Details" data-bs-parent="#PaymentRecords">
 												<div class="accordion-body" style="background-color: #F5F5F5;">
-													<% var padQty = DressingDetails.find(obj => obj.PaymentID === PaymentDetails[i].PaymentID).QtyOfPads;
-														if(padQty != null) { %> 
-															<p><strong>Qty of Pads: </strong><%= padQty //DressingDetails[i].QtyOfPads %></p>
+													<% const RequiredDressingDetails = DressingDetails.find(obj => obj.PaymentID === PaymentDetails[i].PaymentID); %> 
+													<% const padQty = RequiredDressingDetails.QtyOfPads; %> 
+													<% var theDate = new Date(RequiredDressingDetails.DressingDate);
+															const DressingDate = String(theDate.getDate()).padStart(2, '0' ) + "-" + String(theDate.getMonth() + 1).padStart(2, '0' ) + "-" + theDate.getFullYear(); %>
+													<% const TotalAmount = RequiredDressingDetails.TotalAmount; %>
+
+													<% if(padQty != null) { %> 
+														<p><strong>Dressing Date: </strong><%= DressingDate %></p>
+														<p><strong>Qty of Pads: </strong><%= padQty %></p>
+														<p><strong>Total Amount: </strong><%= TotalAmount %></p>
+														<hr>
 													<% } %>
 													<% if(PaymentDetails[i].OintmentCharges != 0) { %> 
 														<table class="table table-striped">
@@ -438,6 +448,7 @@
 															</tbody>
 														</table>
 													<% } %>
+													<!--
 													<table class="table table-striped">
 														<thead>
 															<th>Charges</th>
@@ -458,6 +469,7 @@
 															</tr>
 														</tbody>
 													</table>
+													-->
 												</div>
 											</div>
 										</td>
@@ -469,9 +481,9 @@
 				</div>
 				<hr>
 			<% } else if(PatientDetails.Type=='G' ) { %>
-				<!-- <div class="alert alert-danger" role="alert">
+				<!-- <div class="alert alert-info" role="alert">
 					This feature is under development
-				</div>
+				</div> -->
 				<div id="GeneralMedicineInfo">
 					<div>
 						<% //if(PatientDetails.Status=="ACTIVE") { %> 
@@ -525,27 +537,18 @@
 			<% } %>
 			<div id="AddRecords" class="d-flex justify-content-between">
 				<% if(PatientDetails.Status=="ACTIVE") { %>
+					<div style="max-width: 33%;"></div>
 					<div id="AddDressingRecord">
-						<form action="/patient-details/add-dressing-record">
+						<form action="/patient-details/add-payment-record">
 							<button type="submit" name="addID" value="<%= PatientDetails.PatientID %>" class="mt-10 btn btn-primary btn-lg"><svg xmlns="http://www.w3.org/2000/svg"
 									width="30" height="30" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
 									<path
 										d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
-								</svg>Add Dressing Record
+								</svg>Add Payment
 							</button>
 						</form>
 					</div>
-					<div id="AddMoreProducts">
-						<form action="/patient-details/add-products">
-							<button type="submit" name="addID" value="<%= PatientDetails.PatientID %>" class="mt-10 btn btn-primary btn-lg"><svg xmlns="http://www.w3.org/2000/svg"
-									width="30" height="30" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
-									<path
-										d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
-								</svg>Add More Products
-							</button>
-						</form>
-					</div>
-					<div id="AddCharges">
+					<!-- <div id="AddCharges">
 						<form action="/patient-details/add-charges">
 							<button type="submit" name="addID" value="<%= PatientDetails.PatientID %>" class="mt-10 btn btn-primary btn-lg"><svg xmlns="http://www.w3.org/2000/svg"
 									width="30" height="30" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
@@ -554,7 +557,8 @@
 								</svg>Add Charges
 							</button>
 						</form>
-					</div>
+					</div> -->
+					<div style="max-width: 33%;"></div>
 				<% } %> 
 			</div>
 			<hr>

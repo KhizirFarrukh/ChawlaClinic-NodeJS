@@ -1,11 +1,11 @@
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-public class TokenPrinting {
+public class PaymentReceiptPrinting {
   public static void main(String[] args) {
     String PType = args[0];
     String TokenNum = args[1];
     String PrinterName = args[2];
-    TokenPrinting obj = new TokenPrinting();
+    PaymentReceiptPrinting obj = new PaymentReceiptPrinting();
     obj.PrintToken(PType,TokenNum,PrinterName);
   }
   private String GetSystemTime()
@@ -32,11 +32,11 @@ public class TokenPrinting {
     String fSize5Str = new String(fSize5);
     String cutPStr = new String(cutP);
     String ChawlaClinicName = "CHAWLA CLINIC";
-    String TimeDate_PTypeToken = "\n" + TimeDateString + "\n" + "________________________\n\n" + PatientType + " TOKEN NUMBER\n";
+    // String TimeDate_PTypeToken = "\n" + TimeDateString + "\n" + "________________________\n\n" + PatientType + " TOKEN NUMBER\n";
     String HorizontalLine = "________________________\n\n";
     String Footer = "\n\n\n\n\n\nSOFTWARE DEVELOPED BY KHIZIR FARRUKH\nEMAIL: khizirfarrukh@outlook.com\n\n\n\n\n";
-    String FullString = justify1Str + fSize1Str + ChawlaClinicName + fSize2Str + TimeDate_PTypeToken + HorizontalLine + fSize4Str + TokenNumber + fSize5Str + Footer + cutPStr;
-    printerService.printString(PrinterName, FullString);
+    // String FullString = justify1Str + fSize1Str + ChawlaClinicName + fSize2Str + TimeDate_PTypeToken + HorizontalLine + fSize4Str + TokenNumber + fSize5Str + Footer + cutPStr;
+    // printerService.printString(PrinterName, FullString);
     System.out.println("Printing " + PatientType + " token number #" + TokenNumber + " on printer " + PrinterName);
   }
 }

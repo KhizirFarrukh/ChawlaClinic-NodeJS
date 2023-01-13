@@ -3,7 +3,7 @@ const mysql = require('mysql');
 function ExecuteQuery(id, retrieveLimit, con, callback) {
   // var dressing_sql = "SELECT dressing.QtyOfPads AS \"DressingPads\" from patientdressingrecord dressing where dressing.PaymentID = " + payment_id;
 
-  var dressing_sql = "SELECT payment.PaymentID, dressing.QtyOfPads FROM patientdressingrecord dressing RIGHT JOIN patientpaymentrecord payment ON dressing.PaymentID = payment.PaymentID WHERE payment.PatientID = " + id;
+  var dressing_sql = "SELECT payment.PaymentID, dressing.QtyOfPads, dressing.DressingDate, dressing.TotalAmount FROM patientdressingrecord dressing RIGHT JOIN patientpaymentrecord payment ON dressing.PaymentID = payment.PaymentID WHERE payment.PatientID = " + id + " ORDER BY payment.PaymentID DESC";
   
   if(retrieveLimit == true ) {
     dressing_sql += " LIMIT 5";
