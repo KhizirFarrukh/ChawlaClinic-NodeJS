@@ -1,6 +1,6 @@
 const mysql = require('mysql');
 
-function ExecuteQuery(PatientID, PurchaseDate, AmountPaid, AmountReduction, DiscountOption, SQL_GetCartList, SQL_GetTempDressingRecord, con, callback) {
+function ExecuteQuery(PatientID, PurchaseDate, AmountPaid, AmountReduction, DiscountOption, SQL_GetCartList, SQL_GetTempDressingRecord, isGuest, con, callback) {
     var PaymentTotalAmount = 0;
     var DressingTotalAmount = 0;
     var DressingPadQty = 0.0;
@@ -15,6 +15,7 @@ function ExecuteQuery(PatientID, PurchaseDate, AmountPaid, AmountReduction, Disc
         SQL_GetCartList.ExecuteQuery(PatientID, con, function(cartInfo,CartTotalAmount){
             console.log(cartInfo);
             PaymentTotalAmount += CartTotalAmount;
+            if(isGuest) { AmountPaid = PaymentTotalAmount; }
             var InsertToPaymentsSQL = "INSERT INTO patientpaymentrecord(`PatientID`,`TotalAmount`,`AmountPaid`,`AmountReduction`,`Date`) ";
             InsertToPaymentsSQL += "VALUES(" + PatientID + "," + PaymentTotalAmount + "," + AmountPaid + "," + AmountReduction + ",STR_TO_DATE('" + PurchaseDate + "','%Y-%m-%d'));";
             console.log(InsertToPaymentsSQL);

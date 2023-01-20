@@ -15,6 +15,7 @@ const AddPatient = require('./models/AddPatient');
 const SearchPatient = require('./models/SearchPatient');
 const UpdatePatient = require('./models/UpdatePatient');
 const GetDiscountMode = require('./models/GetDiscountMode');
+const GetGuestPatient = require('./models/GetGuestPatient');
 
 const GetCurrentBalance = require('./models/GetCurrentBalance');
 const DepositAmount = require('./models/DepositAmount');
@@ -34,7 +35,16 @@ const CartManagement = require('./models/CartManagement');
 const GetCartList = require('./models/GetCartList');
 const SearchProducts = require('./models/SearchProducts');
 
+const GetDressingPads = require('./models/GetDressingPads');
+const UpdateDressingPad = require('./models/UpdateDressingPad');
 const GetProductCategories = require('./models/GetProductCategories');
+const AddProductCategory = require('./models/AddProductCategory'); 
+const GetProducts = require('./models/GetProducts');
+const AddProduct = require('./models/AddProduct');
+const UpdateProduct = require('./models/UpdateProduct');
+const AddDiscontinuedProduct = require('./models/AddDiscontinuedProduct');
+const GetDiscontinuedProducts = require('./models/GetDiscontinuedProducts');
+const RemoveDiscontinuedProduct = require('./models/RemoveDiscontinuedProduct');
 
 function AddPaymentRecordCartGet(PatientID,searchResult,discountOption,res) {
 	GetCartList.ExecuteQuery(PatientID, db_connection, function (cartInfo, TotalAmount) {
@@ -48,32 +58,66 @@ function AddPaymentRecordCartGet(PatientID,searchResult,discountOption,res) {
 				totalAmount += tempDressingResult[0].TotalAmount;
 			}
 			console.log(tempDressingResult);
-			res.render('add-payment-record', { title: "Add Patient Payment Record | Chawla Clinic", DressingRecord_OnHold: tempDressingResult[0], SearchResult: searchResult, CartItems: cartInfo, TotalAmount: totalAmount, DisableField : disableField, DiscountOption : discountOption});
+			GetGuestPatient.ExecuteQuery(db_connection, function(GuestPatient) {
+				console.log(GuestPatient);
+				var GuestMode = false;
+				if(+PatientID === GuestPatient[0].PatientID) {
+					GuestMode = true;
+				}
+				res.render('add-payment-record', { title: "Add Patient Payment Record | Chawla Clinic", DressingRecord_OnHold: tempDressingResult[0], SearchResult: searchResult, CartItems: cartInfo, TotalAmount: totalAmount, DisableField : disableField, DiscountOption : discountOption, GuestMode});
+			});
 		});
 	});
 }
 
-function BackupDatabase() {
+function BackupDatabase(callback) {
 	const current_timestamp = new Date(Date.now() + (5*60*60*1000)).toISOString().slice(0,19).replace(/-/g,"").replace(/:/g,"").replace(/T/g,"");
 	// console.log(current_timestamp);
 	
 	const db_username = "root";
 	const db_pass = "root";
 	const db_name = "chawlaclinic";
+	const db_backup_folder = "DB_Backup";
 	const db_backup_filename = "db_backup_" + current_timestamp + ".sql";
-	const shell_cmd = "mysqldump -u " + db_username + " -p" + db_pass + " " + db_name + " --routines --triggers > " + db_backup_filename;
-	console.log(shell_cmd);
+	const db_backup_filepath = db_backup_folder + "\\" + db_backup_filename;
 
-	exec(shell_cmd, (error) => {
+	const mkdir_shell_cmd = "mkdir " + db_backup_folder + "/D";
+	const db_backup_shell_cmd = "mysqldump -u " + db_username + " -p" + db_pass + " " + db_name + " --routines --triggers > " + db_backup_filepath;
+
+	console.log(db_backup_shell_cmd);
+
+	exec(mkdir_shell_cmd, (error) => {
 		if (error) {
-			console.error("exec error: " + error);
-			return;
+			console.error("mkdir exec error: " + error);
+			callback(false);
 		}
-		console.log("Backup successful");
+		exec(db_backup_shell_cmd, (error) => {
+			if (error) {
+				console.error("mysqldump exec error: " + error);
+				callback(false);
+			}
+			console.log("Backup successful");
+			callback(db_backup_filepath);
+		});
 	});
-	return;
 
 	// If mysqldump is not recognized as a command, make sure to add 'C:\xampp\mysql\bin' to path (or the path \mysql\bin of wherever mysql is installed).
+}
+
+function GetInventoryData(editProductID,editDressingID,callback) {
+	GetProductCategories.ExecuteQuery(db_connection,function(categories) {
+		console.log(categories.slice(0,5));
+		GetDressingPads.ExecuteQuery(db_connection, function(dressing_pads) {
+			console.log(dressing_pads);
+			GetProducts.ExecuteQuery(db_connection, function(products) {
+				console.log(products.slice(0,5));
+				GetDiscontinuedProducts.ExecuteQuery(db_connection, function(discontinued_products) {
+					const responseValues = { title: "Inventory | Chawla Clinic", Categories:categories, Products:products, DressingPads:dressing_pads, Discontinued_Products:discontinued_products, EditProductID:editProductID, EditDressingID:editDressingID}
+					callback(responseValues);
+				});
+			});
+		});
+	});
 }
 
 const app = express();
@@ -117,8 +161,11 @@ app.post('/patient', (req, res) => {
 			// res.render('patient', {title: "Patient | Chawla Clinic",searchResult:undefined});
 		});
 	} else if(BackupDB != undefined) {
-		BackupDatabase();
-		res.redirect('back');
+		BackupDatabase(function(filepath) {
+			if(filepath != false) {
+				res.download(filepath);
+			}
+		});
 	}
 	
 });
@@ -176,8 +223,11 @@ app.post('/patient-details', (req, res) => {
 		res.render('page-not-found')
 	} else {
 		if(BackupDB != undefined) {
-			BackupDatabase();
-			res.redirect('back');
+			BackupDatabase(function(filepath) {
+				if(filepath != false) {
+					res.download(filepath);
+				}
+			});
 		} else {
 			SearchPatient.ExecuteQuery("patientdetails", "PatientID", PatientID, db_connection, function (data) {
 				console.log(data);
@@ -246,8 +296,15 @@ app.post('/patient-details/add-payment-record', (req, res) => {
 				if(req.body.DiscountAmount != undefined) {
 					DiscountAmount = req.body.DiscountAmount;
 				}
-				SQL_ConfirmCartItems.ExecuteQuery(PatientID, req.body.PurchaseDate, req.body.AmountPaid, DiscountAmount, discountOption, GetCartList, GetTempDressingRecord, db_connection, function () {
-					res.redirect('/patient-details/?id=' + PatientID);
+				GetGuestPatient.ExecuteQuery(db_connection, function(guest) {
+					var isGuest = false;
+					if(guest[0].PatientID === +PatientID) {
+						isGuest = true;
+					}
+					console.log("is guest:", isGuest);
+					SQL_ConfirmCartItems.ExecuteQuery(PatientID, req.body.PurchaseDate, req.body.AmountPaid, DiscountAmount, discountOption, GetCartList, GetTempDressingRecord, isGuest, db_connection, function () {
+						res.redirect('/patient-details/?id=' + PatientID);
+					});
 				});
 			} else if (req.body.prodID != undefined) {
 				console.log("prodID");
@@ -279,8 +336,11 @@ app.post('/patient-details/add-payment-record', (req, res) => {
 		});
 	}
 	if(BackupDB != undefined) {
-		BackupDatabase();
-		res.redirect('back');
+		BackupDatabase(function(filepath) {
+			if(filepath != false) {
+				res.download(filepath);
+			}
+		});
 	}
 });
 
@@ -358,29 +418,84 @@ app.get('/token-generation', (req, res) => {
 // 			});
 // 		});
 // 	} else if(BackupDB != undefined) {
-// 		BackupDatabase();
-// 		res.redirect('back');
+// 		BackupDatabase(function(filepath) {
+// 			if(filepath != false) {
+// 				res.download(filepath);
+// 			}
+// 		});
 // 	}
 // });
 
 app.get('/inventory', (req, res) => {
 	console.log(req.query);
-	GetProductCategories.ExecuteQuery(db_connection,function(categories){
-		console.log(categories);
-		res.render('inventory', { title: "Inventory | Chawla Clinic", Categories:categories});
-	})
-	
-	// res.redirect('/under-construction');
+	GetInventoryData(-1,-1,function(responseValues) {
+		res.render('inventory', responseValues);
+	});
 });
 
 app.post('/inventory', (req, res) => {
 	console.log(req.query);
 	console.log(req.body);
-	
-	GetProductCategories.ExecuteQuery(db_connection,function(categories){
-		console.log(categories);
-		res.render('inventory', { title: "Inventory | Chawla Clinic", Categories:categories});
-	})
+	const BackupDB = req.body.BackupDatabase;
+	const AddCategoryName = req.body.AddCategoryName;
+	const AddProductName = req.body.AddProductName;
+	const EditProductID = req.body.EditProduct;
+	const SaveProductID = req.body.SaveProduct;
+	const EditDressingID = req.body.EditDressingPad;
+	const SaveDressingID = req.body.SaveDressingPad;
+	const ProductToDiscontinue = req.body.DiscontinueProduct;
+	const AvailableProduct = req.body.AvailableProduct;
+	if(BackupDB != undefined) {
+		BackupDatabase(function(filepath) {
+			if(filepath != false) {
+				res.download(filepath);
+			}
+		});
+	} else if(AddCategoryName != undefined) {
+		AddProductCategory.ExecuteQuery(AddCategoryName, db_connection, function() {
+			GetInventoryData(-1,-1,function(responseValues) {
+				res.render('inventory', responseValues);
+			});
+		});
+	} else if(AddProductName != undefined) {
+		AddProduct.ExecuteQuery(req.body, db_connection, function() {
+			GetInventoryData(-1,-1,function(responseValues) {
+				res.render('inventory', responseValues);
+			});
+		});
+	} else if(EditProductID != undefined) {
+		GetInventoryData(EditProductID,-1,function(responseValues) {
+			res.render('inventory', responseValues);
+		});
+	} else if(SaveProductID != undefined) {
+		UpdateProduct.ExecuteQuery(req.body, db_connection, function() {
+			GetInventoryData(-1,-1,function(responseValues) {
+				res.render('inventory', responseValues);
+			});
+		});
+	} else if(EditDressingID != undefined) {
+		GetInventoryData(-1,EditDressingID,function(responseValues) {
+			res.render('inventory', responseValues);
+		});
+	} else if(SaveDressingID != undefined) {
+		UpdateDressingPad.ExecuteQuery(req.body, db_connection, function() {
+			GetInventoryData(-1,-1,function(responseValues) {
+				res.render('inventory', responseValues);
+			});
+		});
+	} else if(ProductToDiscontinue != undefined) {
+		AddDiscontinuedProduct.ExecuteQuery(ProductToDiscontinue, db_connection, function() {
+			GetInventoryData(-1,-1,function(responseValues) {
+				res.render('inventory', responseValues);
+			});
+		});
+	} else if(AvailableProduct != undefined) {
+		RemoveDiscontinuedProduct.ExecuteQuery(AvailableProduct, db_connection, function() {
+			GetInventoryData(-1,-1,function(responseValues) {
+				res.render('inventory', responseValues);
+			});
+		});
+	}
 });
 
 app.get('/account-management', (req, res) => {

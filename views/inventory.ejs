@@ -17,16 +17,18 @@
 </head>
 
 <body>
-  <div class="container">
+  <div class="container" style="margin-bottom: 250px;">
     <%- include("./partials/header.ejs") %>
     <div id="Inventory">
       <div class="d-flex justify-content-around">
         <div id="AddProductDiv">
           <form method="post">
-            <label for="AddProductInput">Add new Product</label>
+            <label for="AddProductName">Add new Product</label>
             <div class="input-group flex-nowrap mt-10">
-              <input type="text" class="form-control" id="AddProductInput" name="AddProduct" style="width: 500px;max-width: 500px;" placeholder="Product Name" required>
-              <select class="form-select" required>
+              <input type="text" class="form-control" id="AddProductName" name="AddProductName" style="width: 500px;max-width: 500px;" placeholder="Product Name" required>
+              <input type="number" class="form-control" id="AddProductQty" name="AddProductQty" min="0" style="max-width: 77px;" placeholder="Qty" required>
+              <input type="number" class="form-control" id="AddProductPrice" name="AddProductPrice" min="0" style="max-width: 90px;" placeholder="Price" required>
+              <select class="form-select" name="AddProductCategory" required>
                 <option value="" selected>Select a category</option>
                 <% for(let i = 0; i < Categories.length; i++) { %>
                   <option value="<%= Categories[i].CategoryID %>"><%= Categories[i].CategoryName %></option>
@@ -36,32 +38,164 @@
             </div>
           </form>
         </div>
+        <div class="vr"></div>
         <div id="AddCategoryDiv">
           <form method="post">
             <label for="AddCategoryInput">Add new Category</label>
             <div class="input-group flex-nowrap mt-10">
-              <input type="text" class="form-control" id="AddCategoryInput" name="AddCategory" style="max-width: 300px;" placeholder="Category Name">
+              <input type="text" class="form-control" id="AddCategoryInput" name="AddCategoryName" style="max-width: 300px;" placeholder="Category Name">
               <button class="btn btn-primary" type="submit" id="button-addon2" style="width: 70px;">Add</button>
             </div>
           </form>
         </div>
       </div>
       <hr>
-        <!-- <table class="table">
+      <div id="ShowDressingPads">
+        <h5>Dressing Pads Details</h5>
+        <table class="table table-striped" style="max-width: 400px;">
           <thead>
             <tr>
-              <th>col1</th>
-              <th>col2</th>
+              <th>Dressing Pad</th>
+              <th>Price</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>hello 1: <a href="https://www.google.com">redirect</a></td>
-              <td>hello 2: <a href="https://www.google.com">redirect</a></td>
-            </tr>
+            <% for(let i = 0; i < DressingPads.length; i++) { %>
+              <% if(EditDressingID != DressingPads[i].ProductID) { %> 
+                <tr>
+                  <td><%= DressingPads[i].ProductName %></td>
+                  <td><%= DressingPads[i].ProductPrice %></td>
+                  <td>
+                    <form method="post">
+                      <button type="submit" class="btn nav-link" name="EditDressingPad" value="<%= DressingPads[i].ProductID %>">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                          <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                          <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                        </svg>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              <% } else { %>
+                <tr>
+                  <form method="post">
+                    <td><%= DressingPads[i].ProductName %></td>
+                    <td><input type="number" class="form-control" id="DressingPadPrice" name="DressingPadPrice" value="<%= DressingPads[i].ProductPrice %>" min="0" style="max-width: 90px;" required></td>
+                    <td>
+                      <button type="submit" class="btn nav-link" name="SaveDressingPad" value="<%= DressingPads[i].ProductID %>">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check2-square" viewBox="0 0 16 16">
+                          <path d="M3 14.5A1.5 1.5 0 0 1 1.5 13V3A1.5 1.5 0 0 1 3 1.5h8a.5.5 0 0 1 0 1H3a.5.5 0 0 0-.5.5v10a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5V8a.5.5 0 0 1 1 0v5a1.5 1.5 0 0 1-1.5 1.5H3z"/>
+                          <path d="m8.354 10.354 7-7a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0z"/>
+                        </svg>
+                      </button>
+                    </td>
+                  </form>
+                </tr>
+              <% } %> 
+            <% } %>  
           </tbody>
-        </table> -->
-      
+        </table>
+      </div>
+      <hr>
+      <div id="ShowProducts">
+        <h5>Products Details</h5>
+        <table class="table table-striped" style="max-width: 700px;">
+          <thead>
+            <tr>
+              <th>S. No</th>
+              <th>Product Name</th>
+              <th>Quantity</th>
+              <th>Price</th>
+              <th>Category</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for(let i = 0; i < Products.length; i++) { %>
+              <% if(EditProductID != Products[i].ProductID) { %> 
+                <tr>
+                  <td><%= i+1 %></td>
+                  <td><%= Products[i].ProductName %></td>
+                  <td><%= Products[i].Quantity %></td>
+                  <td><%= Products[i].ProductPrice %></td>
+                  <td><%= Products[i].CategoryName %></td>
+                  <td>
+                    <div class="d-flex justify-content-around">
+                      <form method="post">
+                        <button type="submit" class="btn nav-link" name="EditProduct" value="<%= Products[i].ProductID %>">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                            <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                            <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                          </svg>
+                        </button>
+                      </form>
+                      <form method="post">
+                        <button type="submit" class="btn nav-link" name="DiscontinueProduct" value="<%= Products[i].ProductID %>" data-toggle="tooltip" data-placement="top" title="Discontinue this Product" style="color: red;">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                          </svg>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <% } else { %>
+                <tr>
+                  <form method="post">
+                    <td><%= i+1 %></td>
+                    <td><%= Products[i].ProductName %></td>
+                    <td><input type="number" class="form-control" id="ProductQty" name="ProductQty" value="<%= Products[i].Quantity %>" min="0" style="max-width: 82px;" required></td>
+                    <td><input type="number" class="form-control" id="ProductPrice" name="ProductPrice" value="<%= Products[i].ProductPrice %>" min="0" style="max-width: 90px;" required></td>
+                    <td><%= Products[i].CategoryName %></td>
+                    <td>
+                        <button type="submit" class="btn nav-link" name="SaveProduct" value="<%= Products[i].ProductID %>">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check2-square" viewBox="0 0 16 16">
+                            <path d="M3 14.5A1.5 1.5 0 0 1 1.5 13V3A1.5 1.5 0 0 1 3 1.5h8a.5.5 0 0 1 0 1H3a.5.5 0 0 0-.5.5v10a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5V8a.5.5 0 0 1 1 0v5a1.5 1.5 0 0 1-1.5 1.5H3z"/>
+                            <path d="m8.354 10.354 7-7a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0z"/>
+                          </svg>
+                        </button>
+                    </td>
+                  </form>
+                </tr>
+              <% } %> 
+            <% } %>  
+          </tbody>
+        </table>
+      </div>
+      <hr>
+      <div id="ShowDiscontinuedProducts">
+        <h5>Discontinued Products</h5>
+        <table class="table table-striped" style="max-width: 700px;">
+          <thead>
+            <tr>
+              <th>S. No</th>
+              <th>Product Name</th>
+              <th>Price</th>
+              <th>Category</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for(let i = 0; i < Discontinued_Products.length; i++) { %>
+              <tr>
+                <td><%= i+1 %></td>
+                <td><%= Discontinued_Products[i].ProductName %></td>
+                <td><%= Discontinued_Products[i].ProductPrice %></td>
+                <td><%= Discontinued_Products[i].CategoryName %></td>
+                <td>
+                  <form method="post">
+                    <button type="submit" class="btn nav-link" name="AvailableProduct" value="<%= Discontinued_Products[i].ProductID %>" data-toggle="tooltip" data-placement="top" title="Make this Product available">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
+                        <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                      </svg>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            <% } %>  
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </body>

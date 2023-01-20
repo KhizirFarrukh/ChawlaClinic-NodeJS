@@ -81,10 +81,12 @@
 			<div id="ConfirmPayment" style="padding-left: 40px;padding-top: 10px;padding-bottom: 10px;padding-right:10px;">
 				<form method="POST">
 					<p><strong>Total Amount : </strong>Rs. <%= TotalAmount %> </p>
-					<div class="input-group mb-3">
-						<span class="input-group-text" id="basic-addon1">Amount Paid</span>
-						<input type="number" class="form-control" id="AmountPaid" name="AmountPaid" style="max-width: 150px;" required>
-					</div>
+					<% if(GuestMode === false) { %> 
+						<div class="input-group mb-3">
+							<span class="input-group-text" id="basic-addon1">Amount Paid</span>
+							<input type="number" class="form-control" id="AmountPaid" name="AmountPaid" style="max-width: 150px;" required>
+						</div>
+					<% } %> 
 					<% if(DiscountOption != "None") { %> 
 						<div class="input-group mb-3">
 							<span class="input-group-text" id="basic-addon1">Discount Amount (<%= DiscountOption %>)</span>
@@ -109,29 +111,31 @@
 		<hr>
 
 		<div class="d-flex justify-content-between" style="margin-top: 70px;margin-bottom: 250px;">
-			<div id="AddDressingPadRecord" style="width: 40%;">
-				<form method="POST">
-					<div class="input-group mb-3">
-						<span class="input-group-text" id="basic-addon1">Dressing Date</span>
-						<input type="date" class="form-control" id="dressdate" name="dressingdate" style="max-width: 150px;" required <%= DisableField %> >
-					</div>
-					<div class="input-group mb-3">
-						<span class="input-group-text" id="basic-addon1">Pad Quantity</span>
-						<input type="number" class="form-control" id="padqty" name="padquantity" style="max-width: 130px;" <%= DisableField %> >
-						<select class="form-select" id="padfrac" name="padfraction" style="max-width: 90px;" <%= DisableField %> >
-							<option value="0" selected>0</option>
-							<option value="1/4">1/4</option>
-							<option value="1/2">1/2</option>
-							<option value="3/4">3/4</option>
-						</select>
-					</div>
-					<button type="submit" name="AddTempDressingRecord" value="True" class="mt-10 btn btn-primary btn-lg" <%= DisableField %> >
-						<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
-							<path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
-						</svg>Add Dressing Record (to hold)
-					</button>
-				</form>
-			</div>
+			<% if(GuestMode === false) { %> 
+				<div id="AddDressingPadRecord" style="width: 40%;">
+					<form method="POST">
+						<div class="input-group mb-3">
+							<span class="input-group-text" id="basic-addon1">Dressing Date</span>
+							<input type="date" class="form-control" id="dressdate" name="dressingdate" style="max-width: 150px;" required <%= DisableField %> >
+						</div>
+						<div class="input-group mb-3">
+							<span class="input-group-text" id="basic-addon1">Pad Quantity</span>
+							<input type="number" class="form-control" id="padqty" name="padquantity" style="max-width: 130px;" <%= DisableField %> >
+							<select class="form-select" id="padfrac" name="padfraction" style="max-width: 90px;" <%= DisableField %> >
+								<option value="0" selected>0</option>
+								<option value="1/4">1/4</option>
+								<option value="1/2">1/2</option>
+								<option value="3/4">3/4</option>
+							</select>
+						</div>
+						<button type="submit" name="AddTempDressingRecord" value="True" class="mt-10 btn btn-primary btn-lg" <%= DisableField %> >
+							<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+								<path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+							</svg>Add Dressing Record (to hold)
+						</button>
+					</form>
+				</div>
+			<% } %> 
 			<div id="AddProductsRecord" style="width: 60%;">
 				<div style="margin-top: 25px;">
 					<form method="POST">
