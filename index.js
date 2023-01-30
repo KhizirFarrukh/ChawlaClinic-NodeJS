@@ -27,7 +27,7 @@ const GetProductDetails = require('./models/GetProductDetails');
 
 const GetPadPricing = require('./models/GetPadPricing');
 
-const AddDressingTempRecord = require('./models/AddDressingTempRecord');
+const AddTempDressingRecord = require('./models/AddTempDressingRecord');
 const GetTempDressingRecord = require('./models/GetTempDressingRecord');
 const RemoveTempDressingHold = require('./models/RemoveTempDressingHold');
 
@@ -46,17 +46,16 @@ const AddDiscontinuedProduct = require('./models/AddDiscontinuedProduct');
 const GetDiscontinuedProducts = require('./models/GetDiscontinuedProducts');
 const RemoveDiscontinuedProduct = require('./models/RemoveDiscontinuedProduct');
 
+const isNumeric = str => /^\d+$/.test(str);
+
 function AddPaymentRecordCartGet(PatientID,searchResult,discountOption,res) {
 	GetCartList.ExecuteQuery(PatientID, db_connection, function (cartInfo, TotalAmount) {
 		console.log(cartInfo);
 		GetTempDressingRecord.ExecuteQuery(PatientID, db_connection, function(tempDressingResult) {
-			var disableField = "disabled";
 			var totalAmount = TotalAmount;
-			if(tempDressingResult.length == 0) {
-				disableField = "";
-			} else {
-				totalAmount += tempDressingResult[0].TotalAmount;
-			}
+			// totalAmount += tempDressingResult[0].TotalAmount;
+			totalAmount += tempDressingResult.reduce((total, tempDressing) => total + tempDressing.TotalAmount, 0);
+			console.log(totalAmount);
 			console.log(tempDressingResult);
 			GetGuestPatient.ExecuteQuery(db_connection, function(GuestPatient) {
 				console.log(GuestPatient);
@@ -64,7 +63,7 @@ function AddPaymentRecordCartGet(PatientID,searchResult,discountOption,res) {
 				if(+PatientID === GuestPatient[0].PatientID) {
 					GuestMode = true;
 				}
-				res.render('add-payment-record', { title: "Add Patient Payment Record | Chawla Clinic", DressingRecord_OnHold: tempDressingResult[0], SearchResult: searchResult, CartItems: cartInfo, TotalAmount: totalAmount, DisableField : disableField, DiscountOption : discountOption, GuestMode});
+				res.render('add-payment-record', { title: "Add Patient Payment Record | Chawla Clinic", DressingRecord_OnHold: tempDressingResult, SearchResult: searchResult, CartItems: cartInfo, TotalAmount: totalAmount, DiscountOption : discountOption, GuestMode});
 			});
 		});
 	});
@@ -167,7 +166,6 @@ app.post('/patient', (req, res) => {
 			}
 		});
 	}
-	
 });
 
 app.get('/patient-details', (req, res) => {
@@ -320,18 +318,18 @@ app.post('/patient-details/add-payment-record', (req, res) => {
 				});
 			} else if(req.body.AddTempDressingRecord != undefined) {
 				console.log("AddTempDressingRecord");
-				AddDressingTempRecord.ExecuteQuery(req.body, PatientID, GetTempDressingRecord, GetPadPricing, db_connection, function (result) {
-					if(result === true){
-						AddPaymentRecordCartGet(PatientID,undefined,discountOption,res);
-					} else {
-						res.redirect('/patient-details/add-payment-record/?addID=' + PatientID);
-					}
-				});
-			} else if(req.body.RemoveTempDressingHold != undefined) {
-				console.log("RemoveTempDressingHold");
-				RemoveTempDressingHold.ExecuteQuery(PatientID, db_connection, function () {
+				AddTempDressingRecord.ExecuteQuery(req.body, PatientID, GetPadPricing, db_connection, function () {
 					AddPaymentRecordCartGet(PatientID,undefined,discountOption,res);
 				});
+			} 
+			else if(req.body.RemoveTempDressingHold != undefined) {
+				console.log("RemoveTempDressingHold");
+				if(isNumeric(req.body.RemoveTempDressingHold)) {
+					const TempID = parseInt(req.body.RemoveTempDressingHold);
+					RemoveTempDressingHold.ExecuteQuery(TempID, db_connection, function () {
+						AddPaymentRecordCartGet(PatientID,undefined,discountOption,res);
+					});
+				} else { AddPaymentRecordCartGet(PatientID,undefined,discountOption,res); }
 			}
 		});
 	}
