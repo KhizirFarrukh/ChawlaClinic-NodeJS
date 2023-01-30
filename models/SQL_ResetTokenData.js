@@ -1,4 +1,3 @@
-const mysql = require('mysql');
 function ExecuteQuery(con, callback) {
   var sql = "DELETE FROM patienttokennumbers;";
   console.log(sql);

@@ -1,5 +1,3 @@
-const mysql = require('mysql');
-
 function ExecuteQuery(id, arr_PaymentIDs, con, callback) {
   const PaymentID_Match_Values = '(' + arr_PaymentIDs.join(', ') + ')';
 

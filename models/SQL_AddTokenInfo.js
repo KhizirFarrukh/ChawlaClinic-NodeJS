@@ -1,4 +1,3 @@
-const mysql = require('mysql');
 function ExecuteQuery(data, GetTokenInfo, con, callback) {
   GetTokenInfo.ExecuteQuery(data.Type, con,  function (MaxTokenValue) {
     var NewTokenNumber = parseInt(MaxTokenValue) + 1;

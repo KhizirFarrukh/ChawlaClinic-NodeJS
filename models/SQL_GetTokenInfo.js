@@ -1,4 +1,3 @@
-const mysql = require('mysql');
 function ExecuteQuery(MaxCount, con, callback) {
   var TokenMaxCounts = {Male:0,Female:0,Child:0};
   var MaleDetails;

@@ -1,4 +1,3 @@
-const mysql = require('mysql');
 function ExecuteQuery(id, data, con, callback) {
     var SearchSQL = "SELECT * FROM patientdetails where PatientID = " + id;
     con.query(SearchSQL, function (err, result) {

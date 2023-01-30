@@ -1,4 +1,3 @@
-const mysql = require('mysql');
 function ExecuteQuery(con, callback) {
     var sql = "SELECT * FROM `productcategory` WHERE CategoryName != 'Dressing Pad';";
     console.log(sql);

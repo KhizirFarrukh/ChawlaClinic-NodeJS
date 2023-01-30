@@ -1,4 +1,3 @@
-const mysql = require('mysql');
 function ExecuteQuery(table, attrib, val, con, callback) {
     var sql = "SELECT * FROM " + table + " WHERE ";
     if(attrib == "CaseNo") {

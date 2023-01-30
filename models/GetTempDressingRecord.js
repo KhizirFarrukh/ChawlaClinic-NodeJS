@@ -1,4 +1,3 @@
-const mysql = require('mysql');
 function ExecuteQuery(id, con, callback) {
     var sql = "SELECT * FROM `patientdressingtemphold` WHERE PatientID = " + id + " ORDER BY DressingDate;";
     console.log(sql);

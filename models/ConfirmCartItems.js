@@ -1,5 +1,3 @@
-const mysql = require('mysql');
-
 function ExecuteQuery(PatientID, PurchaseDate, AmountPaid, AmountReduction, DiscountOption, GetCartList, GetTempDressingRecord, isGuest, con, callback) {
     var PaymentTotalAmount = 0;
     GetTempDressingRecord.ExecuteQuery(PatientID, con, function(tempDressingResult) {

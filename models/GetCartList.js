@@ -1,4 +1,3 @@
-const mysql = require('mysql');
 function ExecuteQuery(PatientID, con, callback) {
     var sql = "SELECT prod.ProductID, prod.ProductName, cart.Quantity, prod.ProductPrice FROM products prod JOIN patientproductscart cart on prod.ProductID = cart.ProductID where cart.PatientID = " + PatientID + ";";
     console.log(sql)

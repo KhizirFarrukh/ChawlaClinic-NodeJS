@@ -1,4 +1,3 @@
-const mysql = require('mysql');
 function ExecuteQuery(data, PatientID, SQL_GetPadPricing, con, callback) {
   SQL_GetPadPricing.ExecuteQuery(data.padquantity, data.padfraction, con, function(PadPrice){
     var padQty = parseFloat(data.padquantity) + parseFloat(eval(data.padfraction));

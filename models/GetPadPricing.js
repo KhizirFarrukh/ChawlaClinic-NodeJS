@@ -1,4 +1,3 @@
-const mysql = require('mysql');
 function ExecuteQuery(padQty, padFraction, con, callback) {
     var sql = "SELECT prod.ProductName, prod.ProductPrice FROM products prod JOIN productcategory cat on prod.ProductCategoryID = cat.CategoryID where cat.CategoryName = 'Dressing Pad' ";
     sql += "AND ProductName = 'Dressing Pad 1'";

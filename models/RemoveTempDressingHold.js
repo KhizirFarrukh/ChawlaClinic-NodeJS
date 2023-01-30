@@ -1,4 +1,3 @@
-const mysql = require('mysql');
 function ExecuteQuery(TempID, con, callback) {
   var removetempdressing_sql = "DELETE FROM patientdressingtemphold WHERE TempID = " + TempID;
   console.log(removetempdressing_sql);

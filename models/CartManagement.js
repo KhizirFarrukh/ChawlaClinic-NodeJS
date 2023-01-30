@@ -1,4 +1,3 @@
-const mysql = require('mysql');
 function ExecuteQuery(prodID, patientID, Quantity, con, callback) {
     var searchSQL = "SELECT * FROM patientproductscart WHERE ProductID = " + prodID + " AND PatientID = " + patientID + ";";
     console.log(searchSQL);

@@ -1,5 +1,3 @@
-const mysql = require('mysql');
-
 function ExecuteQuery(data, con, callback) {
     var sql = "INSERT INTO patientdetails(`CaseNo`,`Type`,`PatientName`,`Age`,`Gender`,`GuardianName`,`Disease`,`Address`,`PhoneNumber`,`FirstVisit`)";
 

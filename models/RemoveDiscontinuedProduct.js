@@ -1,4 +1,3 @@
-const mysql = require('mysql');
 function ExecuteQuery(ProductID, con, callback) {
   const delete_disc_prod_sql = "DELETE FROM `discontinuedproducts` WHERE ProductID = " + ProductID + ";";
   console.log(delete_disc_prod_sql);
