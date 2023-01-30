@@ -71,14 +71,14 @@ function AddPaymentRecordCartGet(PatientID,searchResult,discountOption,res) {
 
 function PatientPaymentRecordGet(PatientID, retrieveLimit, callback) {
 	GetPaymentBreakdown.ExecuteQuery(PatientID, retrieveLimit, db_connection, function (paymentDetails) {
-		console.log("check",paymentDetails);
+		console.log("paymentDetails check",paymentDetails);
 		const arr_PaymentIDs = paymentDetails.map(paymentDetail => paymentDetail.PaymentID);
 		GetDressingDetails.ExecuteQuery(PatientID, arr_PaymentIDs, db_connection, function (dressingDetails) {
-			console.log("check",dressingDetails);
+			console.log("dressingDetails check",dressingDetails);
 			GetOintmentDetails.ExecuteQuery(PatientID, arr_PaymentIDs, db_connection, function (ointmentDetails) {
-				console.log("check",ointmentDetails);
+				console.log("ointmentDetails check",ointmentDetails);
 				GetProductDetails.ExecuteQuery(PatientID, arr_PaymentIDs, db_connection, function (productDetails) {
-					console.log("check",productDetails);
+					console.log("productDetails check",productDetails);
 					const PaymentRecords = { PaymentDetails : paymentDetails , DressingDetails : dressingDetails, OintmentDetails : ointmentDetails, ProductDetails : productDetails };
 					callback(PaymentRecords);
 				});
