@@ -114,7 +114,7 @@
 					</div>
 					<!-- <textarea class="form-control-plaintext" id="DescriptionTextAreaReadOnly" rows="5" readonly style="padding-left: 10px;padding-right: 5px;" placeholder="Enter Patient Description here..."></textarea> -->
 				</div>
-				<% if(PatientDetails.CaseNo != "Guest") { %> 
+				<% if(PatientDetails.CaseNo !== "Guest") { %> 
 					<div class="d-flex justify-content-between" style="margin-top: 30px;">
 						<h4>Balance: Rs. <%= Balance %></h4>
 						<form method="POST">
@@ -129,7 +129,7 @@
 					</div>
 				<% } %>
 				<hr>
-				<% if(PatientDetails.Status=="ACTIVE" && PatientDetails.CaseNo != "Guest" ) { %> 
+				<% if(PatientDetails.Status=="ACTIVE" && PatientDetails.CaseNo !== "Guest" ) { %> 
 					<form method="POST" style="margin-top: 15px;">
 						<div class="input-group mb-3">
 							<span class="input-group-text">Deposit Amount</span>
@@ -363,19 +363,32 @@
 									<td colspan="9">
 										<div id="collapse<%= i %>" class="accordion-collapse collapse" aria-labelledby="PaymentRecord<%= i %>Details" data-bs-parent="#PaymentRecords">
 											<div class="accordion-body" style="background-color: #F5F5F5;">
-												<% const RequiredDressingDetails = DressingDetails.find(obj => obj.PaymentID === PaymentDetails[i].PaymentID); %> 
-												<% const padQty = RequiredDressingDetails.QtyOfPads; %> 
-												<% var theDate = new Date(RequiredDressingDetails.DressingDate);
-														const DressingDate = String(theDate.getDate()).padStart(2, '0' ) + "-" + String(theDate.getMonth() + 1).padStart(2, '0' ) + "-" + theDate.getFullYear(); %>
-												<% const TotalAmount = RequiredDressingDetails.TotalAmount; %>
-
-												<% if(padQty != null) { %> 
-													<p><strong>Dressing Date: </strong><%= DressingDate %></p>
-													<p><strong>Qty of Pads: </strong><%= padQty %></p>
-													<p><strong>Total Amount: </strong><%= TotalAmount %></p>
-													<hr>
+												<% const RequiredDressingDetails = DressingDetails.filter(dressing => dressing.PaymentID === PaymentDetails[i].PaymentID); %>
+												<% if(RequiredDressingDetails.length > 0 && RequiredDressingDetails.every(dressing => dressing.QtyOfPads !== null)) { %> 
+													<table class="table table-striped">
+														<thead>
+															<th scope="col">Dressing Pads</th>
+															<th scope="col">Date</th>
+															<th scope="col">Total Amount</th>
+														</thead>
+														<tbody>
+															<% for(var j = 0; j < RequiredDressingDetails.length; j++ ) { %> 
+																<% const padQty = RequiredDressingDetails[j].QtyOfPads; %> 
+																<% var theDate = new Date(RequiredDressingDetails[j].DressingDate);
+																		const DressingDate = String(theDate.getDate()).padStart(2, '0' ) + "-" + String(theDate.getMonth() + 1).padStart(2, '0' ) + "-" + theDate.getFullYear(); %>
+																<% const TotalAmount = RequiredDressingDetails[j].TotalAmount; %>
+																<% if(padQty !== null) { %>
+																	<tr>
+																		<td><%= padQty %></td>
+																		<td><%= DressingDate %></td>
+																		<td><%= TotalAmount %></td>
+																	</tr>
+																<% } %>  
+															<% } %>
+														</tbody>
+													</table>
 												<% } %>
-												<% if(PaymentDetails[i].OintmentCharges != 0) { %> 
+												<% if(PaymentDetails[i].OintmentCharges !== 0) { %> 
 													<table class="table table-striped">
 														<thead>
 															<th>Ointment Name</th>
@@ -385,7 +398,7 @@
 														</thead>
 														<tbody>
 															<% for(var j = 0; j < OintmentDetails.length; j++ ) { %> 
-																<% if(OintmentDetails[j].PaymentID == PaymentDetails[i].PaymentID && OintmentDetails[j].ProductName != null) { %>
+																<% if(OintmentDetails[j].PaymentID == PaymentDetails[i].PaymentID && OintmentDetails[j].ProductName !== null) { %>
 																	<tr>
 																		<td><%= OintmentDetails[j].ProductName %></td>
 																		<td><%= OintmentDetails[j].Quantity %></td>
@@ -397,7 +410,7 @@
 														</tbody>
 													</table>
 												<% } %>
-												<% if(PaymentDetails[i].ProductCharges != 0) { %>
+												<% if(PaymentDetails[i].ProductCharges !== 0) { %>
 													<table class="table table-striped">
 														<thead>
 															<th>Items Name</th>
@@ -407,7 +420,7 @@
 														</thead>
 														<tbody>
 															<% for(var j = 0; j < ProductDetails.length; j++ ) { %> 
-																<% if(ProductDetails[j].PaymentID == PaymentDetails[i].PaymentID && ProductDetails[j].ProductName != null) { %>
+																<% if(ProductDetails[j].PaymentID == PaymentDetails[i].PaymentID && ProductDetails[j].ProductName !== null) { %>
 																	<tr>
 																		<td><%= ProductDetails[j].ProductName %></td>
 																		<td><%= ProductDetails[j].Quantity %></td>
