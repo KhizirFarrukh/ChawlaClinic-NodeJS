@@ -6,8 +6,8 @@ function ExecuteQuery(PatientID, con, callback) {
         if (err) throw err;
         const TotalAmount = result.reduce((total, cartItem) => total + (cartItem.ProductPrice * cartItem.Quantity), 0);
         console.log("Total Amount : " + TotalAmount);
-        callback(result,TotalAmount);
         
+        callback(result,TotalAmount);
     });
 }
 module.exports = { ExecuteQuery };

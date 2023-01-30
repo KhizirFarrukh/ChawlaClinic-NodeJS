@@ -13,7 +13,7 @@ function ExecuteQuery(MaxCount, con, callback) {
   var sql_ChildDetails = "SELECT TokenNumber,PatientName from patienttokennumbers WHERE TokenType = 'Child';";
   con.query(sql_MaxMaleCount, function (err, result) {
     if (err) throw err;
-    if(result[0].MaleMax != null) {
+    if(result[0].MaleMax !== null) {
       TokenMaxCounts.Male = result[0].MaleMax;
     }
     if(MaxCount == "Male") {
@@ -21,7 +21,7 @@ function ExecuteQuery(MaxCount, con, callback) {
     } else {
       con.query(sql_MaxFemaleCount, function (err, result) {
         if (err) throw err;
-        if(result[0].FemaleMax != null) {
+        if(result[0].FemaleMax !== null) {
           TokenMaxCounts.Female = result[0].FemaleMax;
         }
         if(MaxCount == "Female") {
@@ -29,7 +29,7 @@ function ExecuteQuery(MaxCount, con, callback) {
         } else {
           con.query(sql_MaxChildCount, function (err, result) {
             if (err) throw err;
-            if(result[0].ChildMax != null) {
+            if(result[0].ChildMax !== null) {
               TokenMaxCounts.Child = result[0].ChildMax;
             }
             if(MaxCount == "Child") {

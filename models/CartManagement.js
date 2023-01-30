@@ -1,8 +1,5 @@
 const mysql = require('mysql');
 function ExecuteQuery(prodID, patientID, Quantity, con, callback) {
-    // Quantity:
-    //          1 -> Add product or increment quantity by 1
-    //          -1 -> Decrement quantity by 1 or remove product if quantity is 1
     var searchSQL = "SELECT * FROM patientproductscart WHERE ProductID = " + prodID + " AND PatientID = " + patientID + ";";
     console.log(searchSQL);
     con.query(searchSQL, function (err, searchresult) {

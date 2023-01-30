@@ -1,7 +1,5 @@
 const mysql = require('mysql');
 function ExecuteQuery(table, attrib, val, con, callback) {
-    // validation check on value for sql injection
-    // change from select all to select specific attributes
     var sql = "SELECT * FROM " + table + " WHERE ";
     if(attrib == "CaseNo") {
         val = val.toLowerCase();

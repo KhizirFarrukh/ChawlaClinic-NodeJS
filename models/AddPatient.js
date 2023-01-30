@@ -1,11 +1,8 @@
 const mysql = require('mysql');
 
 function ExecuteQuery(data, con, callback) {
-    // validation check on value for sql injection
-    // change from select all to select specific attributes
     var sql = "INSERT INTO patientdetails(`CaseNo`,`Type`,`PatientName`,`Age`,`Gender`,`GuardianName`,`Disease`,`Address`,`PhoneNumber`,`FirstVisit`)";
-    // var CaseNo = data.caseno;
-    // var Type = data.type;
+
     var Type = "B";
     var PatientName = data.patientname;
     console.log("age in years:", data.ageyears);
@@ -24,7 +21,7 @@ function ExecuteQuery(data, con, callback) {
     var CaseNoFetchParam = String((new Date(data.firstvisit)).getFullYear()%100) + Type + "-";
     console.log("CaseNo Fetch Param:", CaseNoFetchParam);
     NewCaseNo += CaseNoFetchParam;
-    if(data.caseno != undefined) {
+    if(data.caseno !== undefined) {
         var sql1 = "SELECT count(`CaseNo`) AS \"CaseCount\" FROM patientdetails WHERE `CaseNo` LIKE '" + CaseNoFetchParam + "%" + data.caseno + "' AND CaseNo != 'Guest';";
         console.log(sql1);
         con.query(sql1, function (err, result) {

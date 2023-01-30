@@ -1,15 +1,9 @@
 const mysql = require('mysql');
 
-function ExecuteQuery(id, retrieveLimit, con, callback) {
-  // var payment_sql = "SELECT pay.PaymentID, pay.TotalAmount, pay.AmountPaid, pay.AmountReduction AS \"Discount\", pay.Date, SUM(ointmentpurchase.Amount) AS \"OintmentCharges\", dressing.TotalAmount AS \"DressingCharges\" from patientpaymentrecord pay left join patientproductspurchased prodpurchase on pay.PaymentID = prodpurchase.PaymentID left JOIN patientointmentpurchased ointmentpurchase ON prodpurchase.PurchaseID = ointmentpurchase.PurchaseID left join patientdressingrecord dressing on pay.PaymentID = dressing.PaymentID where pay.PatientID = " + id + " group by ointmentpurchase.PurchaseID order by pay.PaymentID"
+function ExecuteQuery(id, arr_PaymentIDs, con, callback) {
+  const PaymentID_Match_Values = '(' + arr_PaymentIDs.join(', ') + ')';
 
-  var ointment_sql = "";
-
-  if(retrieveLimit == true ) {
-    ointment_sql = "SELECT prod.ProductName, oint.Quantity, oint.Amount, pay.PaymentID FROM products prod JOIN patientointmentpurchased oint on prod.ProductID = oint.ProductID JOIN patientproductspurchased prodpurchase ON oint.PurchaseID = prodpurchase.PurchaseID RIGHT JOIN patientpaymentrecord pay ON prodpurchase.PaymentID = pay.PaymentID JOIN (SELECT PaymentID FROM patientpaymentrecord WHERE PatientID = " + id + " ORDER BY PaymentID DESC LIMIT 5) AS subq ON subq.PaymentID = pay.PaymentID WHERE pay.PatientID = " + id + " ORDER BY pay.PaymentID DESC;";
-  } else {
-    ointment_sql = "SELECT prod.ProductName, oint.Quantity, oint.Amount, pay.PaymentID FROM products prod JOIN patientointmentpurchased oint on prod.ProductID = oint.ProductID JOIN patientproductspurchased prodpurchase ON oint.PurchaseID = prodpurchase.PurchaseID RIGHT JOIN patientpaymentrecord pay ON prodpurchase.PaymentID = pay.PaymentID WHERE pay.PatientID = " + id + " ORDER BY pay.PaymentID DESC;";
-  }                 
+  const ointment_sql = "SELECT prod.ProductName, oint.Quantity, oint.Amount, pay.PaymentID FROM products prod JOIN patientointmentpurchased oint on prod.ProductID = oint.ProductID JOIN patientproductspurchased prodpurchase ON oint.PurchaseID = prodpurchase.PurchaseID RIGHT JOIN patientpaymentrecord pay ON prodpurchase.PaymentID = pay.PaymentID WHERE pay.PatientID = " + id + " AND pay.PaymentID IN " + PaymentID_Match_Values + " ORDER BY pay.PaymentID DESC;";                
 
   console.log(ointment_sql);
 
@@ -17,7 +11,6 @@ function ExecuteQuery(id, retrieveLimit, con, callback) {
     if (err) throw err;
 
     var ointment_details = Object.values(JSON.parse(JSON.stringify(ointmentResult)));
-    // console.log(ointment_details);
 
     callback(ointment_details);
   });
