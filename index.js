@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const db_connection = require('./models/db_connect');
 const { exec } = require('child_process');
 
-const SQL_ConfirmCartItems = require('./models/SQL_ConfirmCartItems');
+const ConfirmCartItems = require('./models/ConfirmCartItems');
 
 // const SQL_AddTokenInfo = require('./models/SQL_AddTokenInfo');
 // const SQL_GetTokenInfo = require('./models/SQL_GetTokenInfo');
@@ -64,6 +64,24 @@ function AddPaymentRecordCartGet(PatientID,searchResult,discountOption,res) {
 					GuestMode = true;
 				}
 				res.render('add-payment-record', { title: "Add Patient Payment Record | Chawla Clinic", DressingRecord_OnHold: tempDressingResult, SearchResult: searchResult, CartItems: cartInfo, TotalAmount: totalAmount, DiscountOption : discountOption, GuestMode});
+			});
+		});
+	});
+}
+
+function PatientPaymentRecordGet(PatientID, retrieveLimit, callback) {
+	GetPaymentBreakdown.ExecuteQuery(PatientID, retrieveLimit, db_connection, function (paymentDetails) {
+		console.log("check",paymentDetails);
+		const arr_PaymentIDs = paymentDetails.map(paymentDetail => paymentDetail.PaymentID);
+		GetDressingDetails.ExecuteQuery(PatientID, arr_PaymentIDs, db_connection, function (dressingDetails) {
+			console.log("check",dressingDetails);
+			GetOintmentDetails.ExecuteQuery(PatientID, arr_PaymentIDs, db_connection, function (ointmentDetails) {
+				console.log("check",ointmentDetails);
+				GetProductDetails.ExecuteQuery(PatientID, arr_PaymentIDs, db_connection, function (productDetails) {
+					console.log("check",productDetails);
+					const PaymentRecords = { PaymentDetails : paymentDetails , DressingDetails : dressingDetails, OintmentDetails : ointmentDetails, ProductDetails : productDetails };
+					callback(PaymentRecords);
+				});
 			});
 		});
 	});
@@ -145,7 +163,6 @@ app.get('/patient', (req, res) => {
 		res.render('patient', { title: "Patient | Chawla Clinic", searchResult: undefined });
 	} else {
 		SearchPatient.ExecuteQuery("patientdetails", searchOption, searchKeyword, db_connection, function (data) {
-			// console.log(data[0].CaseNo);
 			res.render('patient', { title: "Patient | Chawla Clinic", searchResult: data });
 		});
 	}
@@ -157,7 +174,6 @@ app.post('/patient', (req, res) => {
 	if(req.body.AddPatient != undefined) {
 		AddPatient.ExecuteQuery(req.body, db_connection, function (data) {
 			res.redirect('/patient-details?id=' + data.insertId);
-			// res.render('patient', {title: "Patient | Chawla Clinic",searchResult:undefined});
 		});
 	} else if(BackupDB != undefined) {
 		BackupDatabase(function(filepath) {
@@ -181,20 +197,8 @@ app.get('/patient-details', (req, res) => {
 				GetCurrentBalance.ExecuteQuery(PatientID, db_connection, function (bal) {
 					var CurrentBalance = bal[0].paid + bal[0].discount - bal[0].total;
 					console.log(CurrentBalance);
-					GetPaymentBreakdown.ExecuteQuery(PatientID, true, db_connection, function (paymentDetails) {
-						console.log("check",paymentDetails);
-						GetDressingDetails.ExecuteQuery(PatientID, true, db_connection, function (dressingDetails) {
-							console.log("check",dressingDetails);
-							GetOintmentDetails.ExecuteQuery(PatientID, true, db_connection, function (ointmentDetails) {
-								console.log("check",ointmentDetails);
-								GetProductDetails.ExecuteQuery(PatientID, true, db_connection, function (productDetails) {
-									console.log("check",productDetails);
-									res.render('patient-details', { title: "Patient Details | Chawla Clinic", PatientDetails: data, EditMode: editMode, 
-																									Balance: CurrentBalance, PaymentDetails : paymentDetails , DressingDetails : dressingDetails,
-																									OintmentDetails : ointmentDetails, ProductDetails : productDetails});
-								});
-							});
-						});
+					PatientPaymentRecordGet(PatientID, true, function(PaymentRecords) {
+						res.render('patient-details', { title: "Patient Details | Chawla Clinic", PatientDetails: data, EditMode: editMode, Balance: CurrentBalance, ...PaymentRecords});
 					});
 				});
 			} else if (data.length == 0) {
@@ -232,20 +236,8 @@ app.post('/patient-details', (req, res) => {
 				GetCurrentBalance.ExecuteQuery(PatientID, db_connection, function (bal) {
 					var CurrentBalance = bal[0].paid + bal[0].discount - bal[0].total;
 					console.log(CurrentBalance);
-					GetPaymentBreakdown.ExecuteQuery(PatientID, true, db_connection, function (paymentDetails) {
-						console.log("check",paymentDetails);
-						GetDressingDetails.ExecuteQuery(PatientID, true, db_connection, function (dressingDetails) {
-							console.log("check",dressingDetails);
-							GetOintmentDetails.ExecuteQuery(PatientID, true, db_connection, function (ointmentDetails) {
-								console.log("check",ointmentDetails);
-								GetProductDetails.ExecuteQuery(PatientID, true, db_connection, function (productDetails) {
-									console.log("check",productDetails);
-									res.render('patient-details', { title: "Patient Details | Chawla Clinic", PatientDetails: data, EditMode: editMode, 
-																									Balance: CurrentBalance, PaymentDetails : paymentDetails , DressingDetails : dressingDetails,
-																									OintmentDetails : ointmentDetails, ProductDetails : productDetails});
-								});
-							});
-						});
+					PatientPaymentRecordGet(PatientID, true, function(PaymentRecords) {
+						res.render('patient-details', { title: "Patient Details | Chawla Clinic", PatientDetails: data, EditMode: editMode, Balance: CurrentBalance, ...PaymentRecords});
 					});
 				});
 			});
@@ -300,7 +292,7 @@ app.post('/patient-details/add-payment-record', (req, res) => {
 						isGuest = true;
 					}
 					console.log("is guest:", isGuest);
-					SQL_ConfirmCartItems.ExecuteQuery(PatientID, req.body.PurchaseDate, req.body.AmountPaid, DiscountAmount, discountOption, GetCartList, GetTempDressingRecord, isGuest, db_connection, function () {
+					ConfirmCartItems.ExecuteQuery(PatientID, req.body.PurchaseDate, req.body.AmountPaid, DiscountAmount, discountOption, GetCartList, GetTempDressingRecord, isGuest, db_connection, function () {
 						res.redirect('/patient-details/?id=' + PatientID);
 					});
 				});
@@ -342,10 +334,6 @@ app.post('/patient-details/add-payment-record', (req, res) => {
 	}
 });
 
-// app.get('/patient-details/add-general-medicine-record', (req,res) => {
-//     res.render('add-general-medicine-record', {title: "Add Patient General Medicine Record | Chawla Clinic"});
-// });
-
 app.get('/patient-details/add-general-medicine-record', (req, res) => {
 	res.redirect('/under-construction');
 });
@@ -355,29 +343,12 @@ app.get('/patient-details/general-medicine-records', (req, res) => {
 });
 app.get('/patient-details/add-charges', (req, res) => {
 	res.redirect('/under-construction');
-	// const PatientID = req.query.addID;
-	// SQL_GetCartList.ExecuteQuery(PatientID, db_connection, function (cartInfo, TotalAmount) {
-	// 	console.log(cartInfo);
-	// 	res.render('add-charges', { title: "Add Charges | Patient Details | Chawla Clinic", SearchResult: undefined, CartItems: cartInfo, TotalAmount: TotalAmount });
-	// });
 });
 
 app.get('/patient-details/payment-records', (req, res) => {
 	const PatientID = req.query.id;
-	GetPaymentBreakdown.ExecuteQuery(PatientID, false, db_connection, function (paymentDetails) {
-		console.log("check",paymentDetails);
-		GetDressingDetails.ExecuteQuery(PatientID, false, db_connection, function (dressingDetails) {
-			console.log("check",dressingDetails);
-			GetOintmentDetails.ExecuteQuery(PatientID, false, db_connection, function (ointmentDetails) {
-				console.log("check",ointmentDetails);
-				GetProductDetails.ExecuteQuery(PatientID, false, db_connection, function (productDetails) {
-					console.log("check",productDetails);
-					res.render('payment-records', { title: "Payment Records | Chawla Clinic", PaymentDetails : paymentDetails, 
-																					DressingDetails : dressingDetails, OintmentDetails : ointmentDetails, 
-																					ProductDetails : productDetails});
-				});
-			});
-		});
+	PatientPaymentRecordGet(PatientID, false, function(PaymentRecords) {
+		res.render('payment-records', { title: "Payment Records | Chawla Clinic", ...PaymentRecords});
 	});
 });
 
