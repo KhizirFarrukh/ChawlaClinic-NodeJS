@@ -35,7 +35,7 @@ CREATE TABLE `discontinuedproducts` (
 
 LOCK TABLES `discontinuedproducts` WRITE;
 /*!40000 ALTER TABLE `discontinuedproducts` DISABLE KEYS */;
-INSERT INTO `discontinuedproducts` VALUES (66);
+INSERT INTO `discontinuedproducts` VALUES (71);
 /*!40000 ALTER TABLE `discontinuedproducts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -86,9 +86,8 @@ CREATE TABLE `patientdetails` (
   `Balance` int(11) NOT NULL,
   `DiscountMode` varchar(15) COLLATE utf8_bin NOT NULL DEFAULT 'None',
   PRIMARY KEY (`PatientID`),
-  CONSTRAINT `CaseNoDigitCheck` CHECK (`CaseNo` >= 1 and `CaseNo` <= 9999),
   CONSTRAINT `AgeLimitCheck` CHECK (`Age` >= 0.0)
-) ENGINE=InnoDB AUTO_INCREMENT=140875 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=140888 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -97,7 +96,7 @@ CREATE TABLE `patientdetails` (
 
 LOCK TABLES `patientdetails` WRITE;
 /*!40000 ALTER TABLE `patientdetails` DISABLE KEYS */;
-INSERT INTO `patientdetails` VALUES (140870,'22B-000001','B','Khizir Farrukh Chawla',21.917,'M','Sheikh Muhammad Farrukh Chawla','headache part 2','1-C 5/6 Nazimabad No. 1, Karachi','03223131265','ACTIVE','2022-08-25',0,'None'),(140871,'23B-000001','B','Muhammad Ibrahim Farrukh Chawla',8.667,'M','Sheikh Muhammad Farrukh Chawla','hehe','1-C 5/6 Nazimabad No. 1, Karachi','03212937073','ACTIVE','2023-01-08',0,'Zakat'),(140874,'23B-000002','B','test data',11,'F','test','some testing burn disease','','','ACTIVE','2023-01-13',0,'None');
+INSERT INTO `patientdetails` VALUES (0,'Guest','X','Guest',0,'X','','','','','ACTIVE','1968-01-01',0,'None'),(140870,'22B-000001','B','Khizir Farrukh Chawla',21.917,'M','Sheikh Muhammad Farrukh Chawla','headache part 2','1-C 5/6 Nazimabad No. 1, Karachi','03223131265','ACTIVE','2022-08-25',0,'None'),(140871,'23B-000001','B','Muhammad Ibrahim Farrukh Chawla',8.667,'M','Sheikh Muhammad Farrukh Chawla','hehe','1-C 5/6 Nazimabad No. 1, Karachi','03212937073','ACTIVE','2023-01-08',0,'Zakat'),(140874,'23B-000002','B','test data',11,'F','test','some testing burn disease','','','ACTIVE','2023-01-13',0,'None'),(140876,'23B-005501','B','Muhammad Abdullah Farrukh Chawla',14.25,'M','Sheikh Muhammad Farrukh Chawla','xD','1-C 5/6 Nazimabad No. 1','03001234567','ACTIVE','2023-01-18',0,'None'),(140877,'23B-005502','B','Ifrah Farrukh Chawla',19.167,'F','Sheikh Muhammad Farrukh Chawla','hehe','1-C 5/6 Nazimabad No. 1','03001212345','ACTIVE','2023-01-18',0,'None'),(140878,'23B-001101','B','Huzaifa Farrukh',23.25,'M','Farrukh Chawla','asdfasf','','','ACTIVE','2023-01-18',0,'None'),(140882,'23B-005503','B','asd',2,'M','','','','','ACTIVE','2023-01-19',0,'None'),(140883,'23B-001102','B','test 2',50,'M','','','','','ACTIVE','2023-01-19',0,'None'),(140884,'23B-011102','B','test 3',10,'M','','','','','ACTIVE','2023-01-19',0,'None'),(140885,'23B-021102','B','test 4',18,'M','','','','','ACTIVE','2023-01-19',0,'None'),(140886,'21B-000001','B','test 5',25,'M','','','','','ACTIVE','2021-01-01',0,'None'),(140887,'21B-000002','B','test 6',32,'M','','','','','ACTIVE','2021-01-01',0,'None');
 /*!40000 ALTER TABLE `patientdetails` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -138,13 +137,13 @@ DROP TABLE IF EXISTS `patientdressingtemphold`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `patientdressingtemphold` (
+  `TempID` int(11) NOT NULL AUTO_INCREMENT,
   `PatientID` int(11) NOT NULL,
   `DressingDate` date NOT NULL,
   `QtyOfPads` float NOT NULL,
   `TotalAmount` int(11) NOT NULL,
-  PRIMARY KEY (`PatientID`),
-  CONSTRAINT `patientdressingtemphold_ibfk_1` FOREIGN KEY (`PatientID`) REFERENCES `patientdetails` (`PatientID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+  PRIMARY KEY (`TempID`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -153,6 +152,7 @@ CREATE TABLE `patientdressingtemphold` (
 
 LOCK TABLES `patientdressingtemphold` WRITE;
 /*!40000 ALTER TABLE `patientdressingtemphold` DISABLE KEYS */;
+INSERT INTO `patientdressingtemphold` VALUES (2,140870,'2023-01-30',1.25,1000),(5,140870,'2023-01-29',1.25,1000),(6,140870,'2023-01-28',1.25,1000),(7,140870,'2023-01-27',1.5,1200);
 /*!40000 ALTER TABLE `patientdressingtemphold` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -237,7 +237,7 @@ CREATE TABLE `patientpaymentrecord` (
   PRIMARY KEY (`PaymentID`),
   KEY `PatientID` (`PatientID`),
   CONSTRAINT `patientpaymentrecord_ibfk_1` FOREIGN KEY (`PatientID`) REFERENCES `patientdetails` (`PatientID`)
-) ENGINE=InnoDB AUTO_INCREMENT=1333 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=1336 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -246,7 +246,7 @@ CREATE TABLE `patientpaymentrecord` (
 
 LOCK TABLES `patientpaymentrecord` WRITE;
 /*!40000 ALTER TABLE `patientpaymentrecord` DISABLE KEYS */;
-INSERT INTO `patientpaymentrecord` VALUES (1308,140870,1900,1900,0,'2023-01-01'),(1309,140870,2300,2000,0,'2023-01-05'),(1310,140870,800,1000,0,'2023-01-05'),(1311,140870,700,700,0,'2023-01-06'),(1312,140870,0,100,0,'2023-01-07'),(1313,140870,0,1000,0,'2023-01-07'),(1314,140871,2000,2000,0,'2023-01-08'),(1319,140870,5550,4550,0,'2023-01-10'),(1321,140871,2000,2000,0,'2023-01-10'),(1322,140871,2000,1500,500,'2023-01-09'),(1325,140871,2000,1500,500,'2023-01-10'),(1327,140871,2000,1500,500,'2023-01-10'),(1329,140871,2000,1500,500,'2023-01-10'),(1330,140870,1800,1800,0,'2023-01-10'),(1331,140870,6650,7000,0,'2023-01-11'),(1332,140870,800,1000,0,'2023-01-13');
+INSERT INTO `patientpaymentrecord` VALUES (1308,140870,1900,1900,0,'2023-01-01'),(1309,140870,2300,2000,0,'2023-01-05'),(1310,140870,800,1000,0,'2023-01-05'),(1311,140870,700,700,0,'2023-01-06'),(1312,140870,0,100,0,'2023-01-07'),(1313,140870,0,1000,0,'2023-01-07'),(1314,140871,2000,2000,0,'2023-01-08'),(1319,140870,5550,4550,0,'2023-01-10'),(1321,140871,2000,2000,0,'2023-01-10'),(1322,140871,2000,1500,500,'2023-01-09'),(1325,140871,2000,1500,500,'2023-01-10'),(1327,140871,2000,1500,500,'2023-01-10'),(1329,140871,2000,1500,500,'2023-01-10'),(1330,140870,1800,1800,0,'2023-01-10'),(1331,140870,6650,7000,0,'2023-01-11'),(1332,140870,800,1000,0,'2023-01-13'),(1333,0,1810,1810,0,'2023-01-18'),(1334,0,430,430,0,'2023-01-18'),(1335,140870,0,-550,0,'2023-01-19');
 /*!40000 ALTER TABLE `patientpaymentrecord` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -274,6 +274,7 @@ CREATE TABLE `patientproductscart` (
 
 LOCK TABLES `patientproductscart` WRITE;
 /*!40000 ALTER TABLE `patientproductscart` DISABLE KEYS */;
+INSERT INTO `patientproductscart` VALUES (8,140870,2),(40,140870,4);
 /*!40000 ALTER TABLE `patientproductscart` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -291,7 +292,7 @@ CREATE TABLE `patientproductspurchased` (
   PRIMARY KEY (`PurchaseID`),
   KEY `PaymentID` (`PaymentID`),
   CONSTRAINT `patientproductspurchased_ibfk_2` FOREIGN KEY (`PaymentID`) REFERENCES `patientpaymentrecord` (`PaymentID`)
-) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -300,7 +301,7 @@ CREATE TABLE `patientproductspurchased` (
 
 LOCK TABLES `patientproductspurchased` WRITE;
 /*!40000 ALTER TABLE `patientproductspurchased` DISABLE KEYS */;
-INSERT INTO `patientproductspurchased` VALUES (40,1308,1900),(41,1309,1300),(42,1311,700),(47,1319,3750),(49,1331,4450);
+INSERT INTO `patientproductspurchased` VALUES (40,1308,1900),(41,1309,1300),(42,1311,700),(47,1319,3750),(49,1331,4450),(50,1333,1810),(51,1334,430);
 /*!40000 ALTER TABLE `patientproductspurchased` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -329,7 +330,7 @@ CREATE TABLE `patientproductspurchaseditems` (
 
 LOCK TABLES `patientproductspurchaseditems` WRITE;
 /*!40000 ALTER TABLE `patientproductspurchaseditems` DISABLE KEYS */;
-INSERT INTO `patientproductspurchaseditems` VALUES (40,8,2,1200),(40,10,1,700),(41,8,1,600),(41,10,1,700),(42,39,2,700),(47,8,1,600),(47,10,3,2100),(47,39,3,1050),(49,8,2,1200),(49,45,3,750),(49,48,1,600),(49,59,2,1900);
+INSERT INTO `patientproductspurchaseditems` VALUES (40,8,2,1200),(40,10,1,700),(41,8,1,600),(41,10,1,700),(42,39,2,700),(47,8,1,600),(47,10,3,2100),(47,39,3,1050),(49,8,2,1200),(49,45,3,750),(49,48,1,600),(49,59,2,1900),(50,8,1,600),(50,39,1,350),(50,55,2,860),(51,40,1,430);
 /*!40000 ALTER TABLE `patientproductspurchaseditems` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -542,4 +543,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-01-18  8:38:08
+-- Dump completed on 2023-01-30 11:20:12
