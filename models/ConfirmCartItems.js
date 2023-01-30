@@ -1,18 +1,11 @@
 const mysql = require('mysql');
 
-function ExecuteQuery(PatientID, PurchaseDate, AmountPaid, AmountReduction, DiscountOption, SQL_GetCartList, SQL_GetTempDressingRecord, isGuest, con, callback) {
+function ExecuteQuery(PatientID, PurchaseDate, AmountPaid, AmountReduction, DiscountOption, GetCartList, GetTempDressingRecord, isGuest, con, callback) {
     var PaymentTotalAmount = 0;
-    var DressingTotalAmount = 0;
-    var DressingPadQty = 0.0;
-    var DressingDate = undefined;
-    SQL_GetTempDressingRecord.ExecuteQuery(PatientID, con, function(tempDressingResult) {
-        if(tempDressingResult.length > 0) {
-            DressingTotalAmount = tempDressingResult[0].TotalAmount;
-            DressingPadQty = tempDressingResult[0].QtyOfPads;
-            DressingDate = tempDressingResult[0].DressingDate;
-        }
-        PaymentTotalAmount += DressingTotalAmount;
-        SQL_GetCartList.ExecuteQuery(PatientID, con, function(cartInfo,CartTotalAmount){
+    GetTempDressingRecord.ExecuteQuery(PatientID, con, function(tempDressingResult) {
+        DressingTotalAmount = tempDressingResult.reduce((total, tempDressing) => total + tempDressing.TotalAmount, 0);
+        PaymentTotalAmount += tempDressingResult.reduce((total, tempDressing) => total + tempDressing.TotalAmount, 0);
+        GetCartList.ExecuteQuery(PatientID, con, function(cartInfo,CartTotalAmount){
             console.log(cartInfo);
             PaymentTotalAmount += CartTotalAmount;
             if(isGuest) { AmountPaid = PaymentTotalAmount; }
@@ -21,15 +14,13 @@ function ExecuteQuery(PatientID, PurchaseDate, AmountPaid, AmountReduction, Disc
             console.log(InsertToPaymentsSQL);
             con.query(InsertToPaymentsSQL, function (err, result) {
                 if (err) throw err;
-                // console.log(result);
                 console.log(result.insertId);
                 var PaymentID = result.insertId;
                 if(AmountReduction > 0) {
                     var InsertToPaymentDiscountsSQL = "INSERT INTO paymentdiscounts(`PaymentID`,`DiscountOption`) VALUES(" + PaymentID + ",'" + DiscountOption + "');";
                     console.log(InsertToPaymentDiscountsSQL);
-                    con.query(InsertToPaymentDiscountsSQL, function (err, result) {
+                    con.query(InsertToPaymentDiscountsSQL, function (err) {
                         if (err) throw err;
-                        // console.log(result);
                     });
                 }
                 if(cartInfo.length > 0) {
@@ -38,40 +29,37 @@ function ExecuteQuery(PatientID, PurchaseDate, AmountPaid, AmountReduction, Disc
                     console.log(InsertToPurchasesSQL);
                     con.query(InsertToPurchasesSQL, function (err, result) {
                         if (err) throw err;
-                        // console.log(result);
                         console.log(result.insertId);
                         const PurchaseID = result.insertId;
                         for(let i=0;i<cartInfo.length;i+=1) {
                             var DeleteFromCartSQL = "DELETE FROM patientproductscart WHERE ProductID = " + cartInfo[i].ProductID + " AND PatientID = " + PatientID + ";";
                             console.log(DeleteFromCartSQL);
-                            con.query(DeleteFromCartSQL, function (err, result) {
+                            con.query(DeleteFromCartSQL, function (err) {
                                 if (err) throw err;
-                                // console.log(result);
                                 var InsertToPurchasedItemsSQL = "INSERT INTO patientproductspurchaseditems(`PurchaseID`,`ProductID`,`Quantity`,`Amount`) VALUES(" + PurchaseID + "," + cartInfo[i].ProductID + "," + cartInfo[i].Quantity + "," + (cartInfo[i].ProductPrice * cartInfo[i].Quantity) + ");";
                                 console.log(InsertToPurchasedItemsSQL);
-                                con.query(InsertToPurchasedItemsSQL, function (err, result) {
+                                con.query(InsertToPurchasedItemsSQL, function (err) {
                                     if (err) throw err;
-                                    // console.log(result);
                                 });
                             });
                         }
                     });
                 }
-                if(tempDressingResult.length > 0) {
-                    var DeleteFromTempDressingHoldSQL = "DELETE FROM patientdressingtemphold WHERE PatientID = " + PatientID + ";";
+                for(let i = 0; i < tempDressingResult.length; i++) {
+                    console.log(tempDressingResult[i]);
+                    var DeleteFromTempDressingHoldSQL = "DELETE FROM patientdressingtemphold WHERE TempID = " + tempDressingResult[i].TempID + ";";
                     console.log(DeleteFromTempDressingHoldSQL);
-                    con.query(DeleteFromTempDressingHoldSQL, function (err, result) {
+                    con.query(DeleteFromTempDressingHoldSQL, function (err) {
                         if (err) throw err;
-                        console.log(result);
+                        const theDate = new Date(tempDressingResult[i].DressingDate);
+                        const DressingDate = String(theDate.getDate()).padStart(2, '0' ) + "-" + String(theDate.getMonth() + 1).padStart(2, '0' ) + "-" + theDate.getFullYear();
+                        const DressingTotalAmount = tempDressingResult[i].TotalAmount;
+                        const DressingPadQty = tempDressingResult[i].QtyOfPads;
                         console.log(DressingDate);
-                        const theDate = new Date(DressingDate);
-                        DressingDate = String(theDate.getDate()).padStart(2, '0' ) + "-" + String(theDate.getMonth() + 1).padStart(2, '0' ) + "-" + theDate.getFullYear();
                         var InsertToDressingRecordSQL = "INSERT INTO patientdressingrecord(`PaymentID`,`QtyOfPads`,`TotalAmount`,`DressingDate`) VALUES(" + PaymentID + "," + DressingPadQty + "," + DressingTotalAmount + ",STR_TO_DATE('" + DressingDate + "','%d-%m-%Y'));";
-                        console.log(DressingDate);
                         console.log(InsertToDressingRecordSQL);
-                        con.query(InsertToDressingRecordSQL, function (err, result) {
+                        con.query(InsertToDressingRecordSQL, function (err) {
                             if (err) throw err;
-                            // console.log(result);
                         });
                     });
                 }
