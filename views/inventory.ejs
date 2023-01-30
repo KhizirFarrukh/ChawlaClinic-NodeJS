@@ -61,7 +61,7 @@
           </thead>
           <tbody>
             <% for(let i = 0; i < DressingPads.length; i++) { %>
-              <% if(EditDressingID != DressingPads[i].ProductID) { %> 
+              <% if(EditDressingID !== DressingPads[i].ProductID) { %> 
                 <tr>
                   <td><%= DressingPads[i].ProductName %></td>
                   <td><%= DressingPads[i].ProductPrice %></td>
@@ -111,7 +111,7 @@
           </thead>
           <tbody>
             <% for(let i = 0; i < Products.length; i++) { %>
-              <% if(EditProductID != Products[i].ProductID) { %> 
+              <% if(EditProductID !== Products[i].ProductID) { %> 
                 <tr>
                   <td><%= i+1 %></td>
                   <td><%= Products[i].ProductName %></td>
