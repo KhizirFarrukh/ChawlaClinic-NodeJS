@@ -61,7 +61,7 @@ function ExecuteQuery(PatientID, PurchaseDate, AmountPaid, AmountReduction, Disc
                         });
                     });
                 }
-                callback();
+                callback(PaymentID);
             });
         });
     });

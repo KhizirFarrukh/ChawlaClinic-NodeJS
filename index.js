@@ -20,6 +20,7 @@ const GetGuestPatient = require('./models/GetGuestPatient');
 const GetCurrentBalance = require('./models/GetCurrentBalance');
 const DepositAmount = require('./models/DepositAmount');
 
+const GetPaymentSummary = require('./models/GetPaymentSummary');
 const GetPaymentBreakdown = require('./models/GetPaymentBreakdown');
 const GetDressingDetails = require('./models/GetDressingDetails');
 const GetOintmentDetails = require('./models/GetOintmentDetails');
@@ -134,6 +135,13 @@ function GetInventoryData(editProductID,editDressingID,callback) {
 				});
 			});
 		});
+	});
+}
+
+function printReceipt(PaymentID) {
+	GetPaymentSummary.ExecuteQuery(PaymentID, db_connection, function(payment) {
+		console.log("print receipt data ",payment);
+		// printing code here
 	});
 }
 
@@ -292,7 +300,10 @@ app.post('/patient-details/add-payment-record', (req, res) => {
 						isGuest = true;
 					}
 					console.log("is guest:", isGuest);
-					ConfirmCartItems.ExecuteQuery(PatientID, req.body.PurchaseDate, req.body.AmountPaid, DiscountAmount, discountOption, GetCartList, GetTempDressingRecord, isGuest, db_connection, function () {
+					ConfirmCartItems.ExecuteQuery(PatientID, req.body.PurchaseDate, req.body.AmountPaid, DiscountAmount, discountOption, GetCartList, GetTempDressingRecord, isGuest, db_connection, function (PaymentID) {
+						if(req.body.GenerateReceipt === "True") {
+							printReceipt(PaymentID);
+						}
 						res.redirect('/patient-details/?id=' + PatientID);
 					});
 				});
