@@ -4,7 +4,8 @@ const bodyParser = require("body-parser");
 const db_connection = require('./models/db_connect');
 const { exec } = require('child_process');
 
-const ConfirmCartItems = require('./models/ConfirmCartItems');
+const AddPaymentHashCode = require('./models/AddPaymentHashCode');
+const GetPaymentIDFromHash = require('./models/GetPaymentIDFromHash');
 
 // const SQL_AddTokenInfo = require('./models/SQL_AddTokenInfo');
 // const SQL_GetTokenInfo = require('./models/SQL_GetTokenInfo');
@@ -35,6 +36,7 @@ const RemoveTempDressingHold = require('./models/RemoveTempDressingHold');
 const CartManagement = require('./models/CartManagement');
 const GetCartList = require('./models/GetCartList');
 const SearchProducts = require('./models/SearchProducts');
+const ConfirmCartItems = require('./models/ConfirmCartItems');
 
 const GetDressingPads = require('./models/GetDressingPads');
 const UpdateDressingPad = require('./models/UpdateDressingPad');
@@ -48,6 +50,7 @@ const GetDiscontinuedProducts = require('./models/GetDiscontinuedProducts');
 const RemoveDiscontinuedProduct = require('./models/RemoveDiscontinuedProduct');
 
 const isNumeric = str => /^\d+$/.test(str);
+const isAlphaNumericLowercase = str => /^[a-z0-9]+$/.test(str);
 
 function AddPaymentRecordCartGet(PatientID,searchResult,discountOption,res) {
 	GetCartList.ExecuteQuery(PatientID, db_connection, function (cartInfo, TotalAmount) {
@@ -70,15 +73,15 @@ function AddPaymentRecordCartGet(PatientID,searchResult,discountOption,res) {
 	});
 }
 
-function PatientPaymentRecordGet(PatientID, retrieveLimit, callback) {
-	GetPaymentBreakdown.ExecuteQuery(PatientID, retrieveLimit, db_connection, function (paymentDetails) {
+function PatientPaymentRecordGet(PatientID, ID_represents, retrieveLimit, callback) {
+	GetPaymentBreakdown.ExecuteQuery(PatientID, ID_represents, retrieveLimit, db_connection, function (paymentDetails) {
 		console.log("paymentDetails check",paymentDetails);
 		const arr_PaymentIDs = paymentDetails.map(paymentDetail => paymentDetail.PaymentID);
-		GetDressingDetails.ExecuteQuery(PatientID, arr_PaymentIDs, db_connection, function (dressingDetails) {
+		GetDressingDetails.ExecuteQuery(PatientID, ID_represents, arr_PaymentIDs, db_connection, function (dressingDetails) {
 			console.log("dressingDetails check",dressingDetails);
-			GetOintmentDetails.ExecuteQuery(PatientID, arr_PaymentIDs, db_connection, function (ointmentDetails) {
+			GetOintmentDetails.ExecuteQuery(PatientID, ID_represents, arr_PaymentIDs, db_connection, function (ointmentDetails) {
 				console.log("ointmentDetails check",ointmentDetails);
-				GetProductDetails.ExecuteQuery(PatientID, arr_PaymentIDs, db_connection, function (productDetails) {
+				GetProductDetails.ExecuteQuery(PatientID, ID_represents, arr_PaymentIDs, db_connection, function (productDetails) {
 					console.log("productDetails check",productDetails);
 					const PaymentRecords = { PaymentDetails : paymentDetails , DressingDetails : dressingDetails, OintmentDetails : ointmentDetails, ProductDetails : productDetails };
 					callback(PaymentRecords);
@@ -138,7 +141,7 @@ function GetInventoryData(editProductID,editDressingID,callback) {
 	});
 }
 
-function printReceipt(PaymentID) {
+function printReceipt(PaymentID, Payment_HashCode) {
 	GetPaymentSummary.ExecuteQuery(PaymentID, db_connection, function(payment) {
 		console.log("print receipt data ",payment);
 		// printing code here
@@ -205,7 +208,7 @@ app.get('/patient-details', (req, res) => {
 				GetCurrentBalance.ExecuteQuery(PatientID, db_connection, function (bal) {
 					var CurrentBalance = bal[0].paid + bal[0].discount - bal[0].total;
 					console.log(CurrentBalance);
-					PatientPaymentRecordGet(PatientID, true, function(PaymentRecords) {
+					PatientPaymentRecordGet(PatientID, "Patient", true, function(PaymentRecords) {
 						res.render('patient-details', { title: "Patient Details | Chawla Clinic", PatientDetails: data, EditMode: editMode, Balance: CurrentBalance, ...PaymentRecords});
 					});
 				});
@@ -244,7 +247,7 @@ app.post('/patient-details', (req, res) => {
 				GetCurrentBalance.ExecuteQuery(PatientID, db_connection, function (bal) {
 					var CurrentBalance = bal[0].paid + bal[0].discount - bal[0].total;
 					console.log(CurrentBalance);
-					PatientPaymentRecordGet(PatientID, true, function(PaymentRecords) {
+					PatientPaymentRecordGet(PatientID, "Patient", true, function(PaymentRecords) {
 						res.render('patient-details', { title: "Patient Details | Chawla Clinic", PatientDetails: data, EditMode: editMode, Balance: CurrentBalance, ...PaymentRecords});
 					});
 				});
@@ -300,9 +303,9 @@ app.post('/patient-details/add-payment-record', (req, res) => {
 						isGuest = true;
 					}
 					console.log("is guest:", isGuest);
-					ConfirmCartItems.ExecuteQuery(PatientID, req.body.PurchaseDate, req.body.AmountPaid, DiscountAmount, discountOption, GetCartList, GetTempDressingRecord, isGuest, db_connection, function (PaymentID) {
+					ConfirmCartItems.ExecuteQuery(PatientID, req.body.PurchaseDate, req.body.AmountPaid, DiscountAmount, discountOption, GetCartList, GetTempDressingRecord, AddPaymentHashCode, isGuest, db_connection, function (PaymentID, Payment_HashCode) {
 						if(req.body.GenerateReceipt === "True") {
-							printReceipt(PaymentID);
+							printReceipt(PaymentID, Payment_HashCode);
 						}
 						res.redirect('/patient-details/?id=' + PatientID);
 					});
@@ -345,6 +348,30 @@ app.post('/patient-details/add-payment-record', (req, res) => {
 	}
 });
 
+app.get('/patient-details/check-payment', (req, res) => {
+	console.log(req.query);
+	const Payment_HashValue = req.query.id;
+	if(Payment_HashValue !== undefined) {
+		if(isAlphaNumericLowercase(Payment_HashValue)) {
+			GetPaymentIDFromHash.ExecuteQuery(Payment_HashValue, db_connection, function(result) {
+				if(result.length > 0) {
+					const PaymentID = result[0].PaymentID;
+					PatientPaymentRecordGet(PaymentID, "Payment", false, function(PaymentRecord) {
+						res.render('check-payment', { title: "Check Payment Record | Chawla Clinic", ...PaymentRecord, InvalidInput: false});
+					});
+				} else {
+					res.render('check-payment', { title: "Check Payment Record | Chawla Clinic", PaymentDetails: [], InvalidInput: false});
+				}
+			});
+		} else {
+			res.render('check-payment', { title: "Check Payment Record | Chawla Clinic", PaymentDetails: undefined, InvalidInput: true});
+		}
+	}
+	else {
+		res.render('check-payment', { title: "Check Payment Record | Chawla Clinic", PaymentDetails: undefined, InvalidInput: undefined});
+	}
+});
+
 app.get('/patient-details/add-general-medicine-record', (req, res) => {
 	res.redirect('/under-construction');
 });
@@ -358,7 +385,7 @@ app.get('/patient-details/add-charges', (req, res) => {
 
 app.get('/patient-details/payment-records', (req, res) => {
 	const PatientID = req.query.id;
-	PatientPaymentRecordGet(PatientID, false, function(PaymentRecords) {
+	PatientPaymentRecordGet(PatientID, "Patient", false, function(PaymentRecords) {
 		res.render('payment-records', { title: "Payment Records | Chawla Clinic", ...PaymentRecords});
 	});
 });

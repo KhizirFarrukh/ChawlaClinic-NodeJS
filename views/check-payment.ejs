@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="/static/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+	<link rel="stylesheet" href="/static/css/bootstrap-icons.css">
+	<script src="/static/js/bootstrap.bundle.min.js"
+    integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+    crossorigin="anonymous"></script>
+
+  <title>
+    <%= title %>
+  </title>
+</head>
+
+<body>
+  <div class="container">
+    <%- include("./partials/header.ejs") %>
+    <div>
+      <h4>Check Payment Details</h4>
+      <div class="d-flex justify-content-between">
+        <div id="ManualInput" style="margin-top: 20px;">
+          <form method="get">
+            <div class="input-group mb-3">
+              <span class="input-group-text" id="basic-addon1">Payment ID</span>
+              <input type="text" class="form-control" id="id" name="id"
+                placeholder="Enter Payment ID" style="max-width: 170px;" required>
+              <button type="submit" id="id_Submit" class="mt-10 btn btn-primary">
+                Get Payment Details
+              </button>
+            </div>
+          </form>
+        </div>
+        <div id="QRCodeInput" style="margin-top: 20px;">
+          <button id="toggleButton" class="btn btn-primary">Toggle Video</button>
+          <br>
+          <video id="videoElement" autoplay style="width: 320px; height: 240px; margin-top: 10px; display: none;"></video>
+          <canvas id="canvas" width="300" height="200" hidden></canvas>
+          <script src="https://cdn.jsdelivr.net/npm/jsqr@1.0.0/dist/jsQR.min.js"></script>
+          <script>
+            const videoElement = document.querySelector('#videoElement');
+            const toggleButton = document.querySelector('#toggleButton');
+            const isAlphaNumericLowercase = str => /^[a-z0-9]+$/.test(str);
+            
+            var canvas = document.getElementById("canvas");
+            var context = canvas.getContext("2d");
+
+            function capture() {
+              context.drawImage(videoElement, 0, 0, 300, 200);
+              var imageData = context.getImageData(0, 0, 300, 200);
+              var qrCode = jsQR(imageData.data, imageData.width, imageData.height);
+              if (qrCode) {
+                const QRCode_value = qrCode.data
+                console.log("QR code detected:", QRCode_value);
+                if(isAlphaNumericLowercase(QRCode_value)) {
+                  document.getElementById('id').value = QRCode_value;
+                  document.getElementById('id_Submit').click();
+                }
+              }
+            }
+
+            setInterval(capture, 500);
+
+            toggleButton.addEventListener('click', () => {
+              if (videoElement.paused) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                  .then(stream => {
+                    videoElement.srcObject = stream;
+                    videoElement.play();
+                    videoElement.style.display = "block";
+                  });
+              } else {
+                videoElement.pause();
+                videoElement.srcObject = null;
+                videoElement.style.display = "none";
+              }
+            });
+          </script>
+        </div>
+      </div>
+    </div>
+    <div id="PaymentDetails" style="margin-top: 25px;">
+      <% if(InvalidInput !== undefined) { %>
+        <% if(InvalidInput === true) { %>
+          <div class="alert alert-danger" role="alert">
+						Error: Invalid input
+					</div>
+        <% } %>  
+      <% } %>  
+      <% if(PaymentDetails !== undefined) { %> 
+        <hr>
+        <div class="d-flex justify-content-between">
+          <h4>Payment Details</h4>
+          <% if(PaymentDetails.length > 0) { %> 
+            <% if(PaymentDetails[0].PatientID !== undefined) { %> 
+              <form action="/patient-details">
+                <button type="submit" class="btn nav-link" name="id" value="<%= PaymentDetails[0].PatientID %>">
+                  Go to Patient profile
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+                  </svg>
+                </button>
+              </form>
+            <% } %> 
+          <% } %> 
+        </div>
+        
+        <% if(PaymentDetails.length > 0) { %> 
+          <p><strong>Patient: </strong><%= PaymentDetails[0].PatientName %> </p>
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Dressing Charges</th>
+                <th scope="col">Ointment Charges</th>
+                <th scope="col">Product Charges</th>
+                <th scope="col">Total Amount</th>
+                <th scope="col">Discount</th>
+                <th scope="col">Amount Paid</th>
+              </tr>
+            </thead>
+            <tbody id="DressingRecords">
+              <tr>
+                <% if(PaymentDetails[0].DressingCharges == null) { PaymentDetails[0].DressingCharges = 0 } %>
+                <% if(PaymentDetails[0].OintmentCharges == null) { PaymentDetails[0].OintmentCharges = 0 } %>
+                <% if(PaymentDetails[0].ProductCharges == null) { PaymentDetails[0].ProductCharges = 0 } %>
+                <% var theDate = new Date(PaymentDetails[0].Date);
+                    PaymentDetails[0].Date = String(theDate.getDate()).padStart(2, '0' ) + "-" + String(theDate.getMonth() + 1).padStart(2, '0' ) + "-" + theDate.getFullYear(); %>
+                <td><%= PaymentDetails[0].Date %></td>
+                <td><%= PaymentDetails[0].DressingCharges %></td>
+                <td><%= PaymentDetails[0].OintmentCharges %></td>
+                <td><%= PaymentDetails[0].ProductCharges %></td>
+                <td><%= PaymentDetails[0].TotalAmount %></td>
+                <td><%= PaymentDetails[0].Discount %></td>
+                <td><%= PaymentDetails[0].AmountPaid %></td>
+              </tr>
+              <tr>
+                <td colspan="9">
+                  <div style="background-color: #F5F5F5;">
+                    <% const RequiredDressingDetails = DressingDetails.filter(dressing => dressing.PaymentID === PaymentDetails[0].PaymentID); %>
+                      <% if(RequiredDressingDetails.length > 0 && RequiredDressingDetails.every(dressing => dressing.QtyOfPads !== null)) { %> 
+                        <table class="table table-striped">
+                          <thead>
+                            <th scope="col">Dressing Pads</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Total Amount</th>
+                          </thead>
+                          <tbody>
+                            <% for(var j = 0; j < RequiredDressingDetails.length; j++ ) { %> 
+                              <% const padQty = RequiredDressingDetails[j].QtyOfPads; %> 
+                              <% var theDate = new Date(RequiredDressingDetails[j].DressingDate);
+                                  const DressingDate = String(theDate.getDate()).padStart(2, '0' ) + "-" + String(theDate.getMonth() + 1).padStart(2, '0' ) + "-" + theDate.getFullYear(); %>
+                              <% const TotalAmount = RequiredDressingDetails[j].TotalAmount; %>
+                              <% if(padQty !== null) { %>
+                                <tr>
+                                  <td><%= padQty %></td>
+                                  <td><%= DressingDate %></td>
+                                  <td><%= TotalAmount %></td>
+                                </tr>
+                              <% } %>  
+                            <% } %>
+                          </tbody>
+                        </table>
+                      <% } %>
+                    <% if(PaymentDetails[0].OintmentCharges !== 0) { %> 
+                      <table class="table table-striped">
+                        <thead>
+                          <th>Ointment Name</th>
+                          <th>Quantity</th>
+                          <th>Price</th>
+                          <th>Total Amount</th>
+                        </thead>
+                        <tbody>
+                          <% for(var j = 0; j < OintmentDetails.length; j++ ) { %> 
+                            <% if(OintmentDetails[j].PaymentID == PaymentDetails[0].PaymentID && OintmentDetails[j].ProductName !== null) { %>
+                              <tr>
+                                <td><%= OintmentDetails[j].ProductName %></td>
+                                <td><%= OintmentDetails[j].Quantity %></td>
+                                <td><%= OintmentDetails[j].Amount / OintmentDetails[j].Quantity %></td>
+                                <td><%= OintmentDetails[j].Amount %></td>
+                              </tr>
+                            <% } %>  
+                          <% } %>
+                        </tbody>
+                      </table>
+                    <% } %>
+                    <% if(PaymentDetails[0].ProductCharges !== 0) { %>
+                      <table class="table table-striped">
+                        <thead>
+                          <th>Items Name</th>
+                          <th>Quantity</th>
+                          <th>Price</th>
+                          <th>Total Amount</th>
+                        </thead>
+                        <tbody>
+                          <% for(var j = 0; j < ProductDetails.length; j++ ) { %> 
+                            <% if(ProductDetails[j].PaymentID == PaymentDetails[0].PaymentID && ProductDetails[j].ProductName !== null) { %>
+                              <tr>
+                                <td><%= ProductDetails[j].ProductName %></td>
+                                <td><%= ProductDetails[j].Quantity %></td>
+                                <td><%= ProductDetails[j].Amount / ProductDetails[j].Quantity %></td>
+                                <td><%= ProductDetails[j].Amount %></td>
+                              </tr>
+                            <% } %>  
+                          <% } %>
+                        </tbody>
+                      </table>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- <form method="post">
+            <button type="submit" name="CompletePayment" value="<%= PaymentDetails[0].PaymentID %>" class="mt-10 btn btn-danger">
+              Complete Payment
+            </button>
+          </form> -->
+        <% } else { %>
+          <div class="alert alert-danger" role="alert">
+						Error 404: No record found
+					</div>
+        <% } %>  
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>
