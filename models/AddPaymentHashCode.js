@@ -24,7 +24,7 @@ function ExecuteQuery(PaymentID, con, callback) {
   console.log(insert_payment_hashID_sql);
   con.query(insert_payment_hashID_sql, function (err) {
     if (err) throw err;
-    callback(Hash_Value);
+    callback();
   });
   
 }

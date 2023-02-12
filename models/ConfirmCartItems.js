@@ -14,7 +14,7 @@ function ExecuteQuery(PatientID, PurchaseDate, AmountPaid, AmountReduction, Disc
                 if (err) throw err;
                 console.log(result.insertId);
                 var PaymentID = result.insertId;
-                AddPaymentHashCode.ExecuteQuery(PaymentID, con, function(Payment_HashCode) {
+                AddPaymentHashCode.ExecuteQuery(PaymentID, con, function() {
                     if(AmountReduction > 0) {
                         var InsertToPaymentDiscountsSQL = "INSERT INTO paymentdiscounts(`PaymentID`,`DiscountOption`) VALUES(" + PaymentID + ",'" + DiscountOption + "');";
                         console.log(InsertToPaymentDiscountsSQL);
@@ -62,7 +62,7 @@ function ExecuteQuery(PatientID, PurchaseDate, AmountPaid, AmountReduction, Disc
                             });
                         });
                     }
-                    callback(PaymentID,Payment_HashCode);
+                    callback(PaymentID);
                 });
             });
         });
