@@ -1,21 +1,56 @@
-function ExecuteQuery(data, GetTokenInfo, con, callback) {
-  GetTokenInfo.ExecuteQuery(data.Type, con,  function (MaxTokenValue) {
-    var NewTokenNumber = parseInt(MaxTokenValue) + 1;
-    const currentDateTime = new Date(data.TokenDateTime);
-    var TokenDateTime = currentDateTime.getFullYear() + "-" + String(currentDateTime.getMonth() + 1).padStart(2, '0') + "-" + String(currentDateTime.getDate()).padStart(2, '0') + " " + String(currentDateTime.getHours()).padStart(2, '0') + ":" + String(currentDateTime.getMinutes()).padStart(2, '0') + ":" + String(currentDateTime.getSeconds()).padStart(2, '0');
-    console.log(TokenDateTime);
-    var sql_Record = "INSERT INTO patienttokennumbers(`TokenNumber`, `TokenType`, `PatientName`, `TokenDateTime`) ";
-    sql_Record += "VALUES(" + NewTokenNumber + ",'" + data.Type + "','" + data.Name + "','" + TokenDateTime + "');";
-    console.log(sql_Record);
-    con.query(sql_Record, function (err, result) {
+function ExecuteQuery(TokenPatientID, TokenName, TokenType, TokenDateTime, GetTokenInfo, SearchPatient, con, callback) {
+  if(TokenPatientID === undefined) { 
+    TokenPatientID = "NULL";
+    GetTokenInfo.ExecuteQuery(TokenType, con, function (MaxTokenValue) {
+      console.log(MaxTokenValue);
+      var NewTokenNumber = parseInt(MaxTokenValue) + 1;
+      console.log(TokenDateTime);
+      var sql_Record = "INSERT INTO patienttokennumbers(`TokenNumber`, `TokenType`, `PatientID`, `PatientName`, `TokenDateTime`) ";
+      sql_Record += "VALUES(" + NewTokenNumber + ",'" + TokenType + "'," + TokenPatientID + ",'" + TokenName + "','" + TokenDateTime + "');";
+      console.log(sql_Record);
+      con.query(sql_Record, function (err, result) {
         if (err) throw err;
-        var sql_Logs = "INSERT INTO patienttokenlogs(`TokenNumber`, `TokenType`, `PatientName`, `TokenDateTime`) ";
-        sql_Logs += "VALUES(" + NewTokenNumber + ",'" + data.Type + "','" + data.Name + "','" + TokenDateTime + "');";
-        con.query(sql_Logs, function (err, result) {
+        var sql_Logs = "INSERT INTO patienttokenlogs(`TokenNumber`, `TokenType`, `PatientID`, `PatientName`, `TokenDateTime`) ";
+        sql_Logs += "VALUES(" + NewTokenNumber + ",'" + TokenType + "'," + TokenPatientID + ",'" + TokenName + "','" + TokenDateTime + "');";
+        con.query(sql_Logs, function (err) {
           if (err) throw err;
-          callback(NewTokenNumber);
+          callback(NewTokenNumber, TokenType, undefined);
+        });
       });
     });
-	});
+  }
+  else {
+    SearchPatient.ExecuteQuery("PatientID",TokenPatientID,con,function(patientDetails) {
+      TokenName = patientDetails[0].PatientName;
+      const PatientAge = patientDetails[0].Age;
+      const PatientGender = patientDetails[0].Gender;
+      if(PatientAge < 12) {
+        TokenType = "Child";
+      } else {
+        if(PatientGender === "M") {
+          TokenType = "Male";
+        } else if(PatientGender === "F") {
+          TokenType = "Female";
+        }
+      }
+      GetTokenInfo.ExecuteQuery(TokenType, con, function (MaxTokenValue) {
+        console.log(MaxTokenValue);
+        var NewTokenNumber = parseInt(MaxTokenValue) + 1;
+        console.log(TokenDateTime);
+        var sql_Record = "INSERT INTO patienttokennumbers(`TokenNumber`, `TokenType`, `PatientID`, `PatientName`, `TokenDateTime`) ";
+        sql_Record += "VALUES(" + NewTokenNumber + ",'" + TokenType + "'," + TokenPatientID + ",'" + TokenName + "','" + TokenDateTime + "');";
+        console.log(sql_Record);
+        con.query(sql_Record, function (err, result) {
+          if (err) throw err;
+          var sql_Logs = "INSERT INTO patienttokenlogs(`TokenNumber`, `TokenType`, `PatientID`, `PatientName`, `TokenDateTime`) ";
+          sql_Logs += "VALUES(" + NewTokenNumber + ",'" + TokenType + "'," + TokenPatientID + ",'" + TokenName + "','" + TokenDateTime + "');";
+          con.query(sql_Logs, function (err) {
+            if (err) throw err;
+            callback(NewTokenNumber, TokenType, TokenPatientID);
+          });
+        });
+      });
+    });
+  }
 }
 module.exports = { ExecuteQuery };
