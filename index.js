@@ -7,9 +7,9 @@ const { exec } = require('child_process');
 const AddPaymentHashCode = require('./models/AddPaymentHashCode');
 const GetPaymentIDFromHash = require('./models/GetPaymentIDFromHash');
 
-// const SQL_AddTokenInfo = require('./models/SQL_AddTokenInfo');
-// const SQL_GetTokenInfo = require('./models/SQL_GetTokenInfo');
-// const SQL_ResetTokenData = require('./models/SQL_ResetTokenData');
+const SQL_AddTokenInfo = require('./models/SQL_AddTokenInfo');
+const SQL_GetTokenInfo = require('./models/SQL_GetTokenInfo');
+const SQL_ResetTokenData = require('./models/SQL_ResetTokenData');
 
 
 const AddPatient = require('./models/AddPatient');
@@ -48,6 +48,7 @@ const UpdateProduct = require('./models/UpdateProduct');
 const AddDiscontinuedProduct = require('./models/AddDiscontinuedProduct');
 const GetDiscontinuedProducts = require('./models/GetDiscontinuedProducts');
 const RemoveDiscontinuedProduct = require('./models/RemoveDiscontinuedProduct');
+const { parse } = require('path');
 
 const isNumeric = str => /^\d+$/.test(str);
 const isAlphaNumericLowercase = str => /^[a-z0-9]+$/.test(str);
@@ -141,12 +142,18 @@ function GetInventoryData(editProductID,editDressingID,callback) {
 	});
 }
 
-function printReceipt(PaymentID, Payment_HashCode) {
-	GetPaymentSummary.ExecuteQuery(PaymentID, db_connection, function(payment) {
-		console.log("print receipt data ",payment);
-		// printing code here
-	});
-}
+// function printToken(TokenNum, TokenNumType, PatientID) {
+// 	if(PatientID !== undefined) {
+// 		SearchPatient.ExecuteQuery("PatientID", PatientID, db_connection, function (patientDetails) {
+// 			const PatientCaseNum = patientDetails[0].CaseNo;
+// 			console.log("print token data: ", TokenNum, TokenNumType, PatientCaseNum);
+// 			// printing code here
+// 		});
+// 	} else {
+// 		console.log("print token data: ", TokenNum, TokenNumType);
+// 		// printing code here
+// 	}
+// }
 
 const app = express();
 
@@ -170,10 +177,10 @@ app.get('/patient', (req, res) => {
 	const searchKeyword = req.query.searchkeyword;
 	console.log(searchOption);
 	console.log(searchKeyword);
-	if (searchOption == undefined) {
+	if (searchOption === undefined) {
 		res.render('patient', { title: "Patient | Chawla Clinic", searchResult: undefined });
 	} else {
-		SearchPatient.ExecuteQuery("patientdetails", searchOption, searchKeyword, db_connection, function (data) {
+		SearchPatient.ExecuteQuery(searchOption, searchKeyword, db_connection, function (data) {
 			res.render('patient', { title: "Patient | Chawla Clinic", searchResult: data });
 		});
 	}
@@ -202,7 +209,7 @@ app.get('/patient-details', (req, res) => {
 		res.status(404);
 		res.render('page-not-found')
 	} else {
-		SearchPatient.ExecuteQuery("patientdetails", "PatientID", PatientID, db_connection, function (data) {
+		SearchPatient.ExecuteQuery("PatientID", PatientID, db_connection, function (data) {
 			console.log(data);
 			if (data.length == 1) {
 				GetCurrentBalance.ExecuteQuery(PatientID, db_connection, function (bal) {
@@ -222,6 +229,7 @@ app.get('/patient-details', (req, res) => {
 app.post('/patient-details', (req, res) => {
 	const PatientID = req.query.id;
 	const BackupDB = req.body.BackupDatabase;
+	const ReprintPaymentID = req.body.ReprintPayment;
 	var editMode = false;
 	console.log(req.body);
 	if (req.body.editDetails == "edit") {
@@ -241,8 +249,24 @@ app.post('/patient-details', (req, res) => {
 					res.download(filepath);
 				}
 			});
+		} else if(ReprintPaymentID !== undefined) {
+			GetPaymentSummary.ExecuteQuery(parseInt(ReprintPaymentID), db_connection, function(result) {
+				console.log(result);
+				const Payment_HashValue = result[0].PaymentHashCode;
+				if(Payment_HashValue === null) {
+					res.redirect(req.originalUrl);
+				} else {
+					const AmountPaid = result[0].AmountPaid;
+					const PaymentDate = result[0].Date;
+					const PaymentDateObj = new Date(PaymentDate);
+					const processedPaymentDate = String(PaymentDateObj.getDate()).padStart(2, '0' ) + "%2F" + String(PaymentDateObj.getMonth() + 1).padStart(2, '0' ) + "%2F" + PaymentDateObj.getFullYear();
+					const redirectURL = req.originalUrl;
+					console.log("Print Handler Values: ", Payment_HashValue, AmountPaid, processedPaymentDate, redirectURL);
+					res.render('print-handler', {printmethod:"printpaymentreceipt", params:"PaymentHashID=" + Payment_HashValue + "&AmountPaid=" + AmountPaid + "&PaymentDate=" + processedPaymentDate, redirectURL});
+				}
+			});
 		} else {
-			SearchPatient.ExecuteQuery("patientdetails", "PatientID", PatientID, db_connection, function (data) {
+			SearchPatient.ExecuteQuery("PatientID", PatientID, db_connection, function (data) {
 				console.log(data);
 				GetCurrentBalance.ExecuteQuery(PatientID, db_connection, function (bal) {
 					var CurrentBalance = bal[0].paid + bal[0].discount - bal[0].total;
@@ -303,11 +327,27 @@ app.post('/patient-details/add-payment-record', (req, res) => {
 						isGuest = true;
 					}
 					console.log("is guest:", isGuest);
-					ConfirmCartItems.ExecuteQuery(PatientID, req.body.PurchaseDate, req.body.AmountPaid, DiscountAmount, discountOption, GetCartList, GetTempDressingRecord, AddPaymentHashCode, isGuest, db_connection, function (PaymentID, Payment_HashCode) {
+					ConfirmCartItems.ExecuteQuery(PatientID, req.body.PurchaseDate, req.body.AmountPaid, DiscountAmount, discountOption, GetCartList, GetTempDressingRecord, AddPaymentHashCode, isGuest, db_connection, function (PaymentID) {
 						if(req.body.GenerateReceipt === "True") {
-							printReceipt(PaymentID, Payment_HashCode);
+							GetPaymentSummary.ExecuteQuery(PaymentID, db_connection, function(result) {
+								console.log(result);
+								const Payment_HashValue = result[0].PaymentHashCode;
+								if(Payment_HashValue === null) {
+									res.redirect('/patient-details/?id=' + PatientID);
+								} else {
+									const AmountPaid = result[0].AmountPaid;
+									const PaymentDate = result[0].Date;
+									const PaymentDateObj = new Date(PaymentDate);
+									const processedPaymentDate = String(PaymentDateObj.getDate()).padStart(2, '0' ) + "%2F" + String(PaymentDateObj.getMonth() + 1).padStart(2, '0' ) + "%2F" + PaymentDateObj.getFullYear();
+									console.log(Payment_HashValue, AmountPaid, processedPaymentDate);
+									const redirectURL = '/patient-details/?id=' + PatientID;
+									res.render('print-handler', {printmethod:"printpaymentreceipt", params:"PaymentHashID=" + Payment_HashValue + "&AmountPaid=" + AmountPaid + "&PaymentDate=" + processedPaymentDate, redirectURL});
+								}
+							});
+						} else {
+							res.redirect('/patient-details/?id=' + PatientID);
 						}
-						res.redirect('/patient-details/?id=' + PatientID);
+						
 					});
 				});
 			} else if (req.body.prodID != undefined) {
@@ -353,7 +393,7 @@ app.get('/patient-details/check-payment', (req, res) => {
 	const Payment_HashValue = req.query.id;
 	if(Payment_HashValue !== undefined) {
 		if(isAlphaNumericLowercase(Payment_HashValue)) {
-			GetPaymentIDFromHash.ExecuteQuery(Payment_HashValue, db_connection, function(result) {
+			GetPaymentIDFromHash.ExecuteQuery(undefined, Payment_HashValue, db_connection, function(result) {
 				if(result.length > 0) {
 					const PaymentID = result[0].PaymentID;
 					PatientPaymentRecordGet(PaymentID, "Payment", false, function(PaymentRecord) {
@@ -390,51 +430,73 @@ app.get('/patient-details/payment-records', (req, res) => {
 	});
 });
 
+// app.get('/token-generation', (req, res) => {
+// 	res.redirect('/under-construction');
+// });
+
 app.get('/token-generation', (req, res) => {
-	res.redirect('/under-construction');
+	console.log(req.query);
+	const searchOption = req.query.searchoption;
+	const searchKeyword = req.query.searchkeyword;
+	if (searchOption === undefined) {
+		SQL_GetTokenInfo.ExecuteQuery(undefined, db_connection, function (TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails) {
+			console.log(TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails);
+			res.render('token-generation', { title: "Token Generation | Chawla Clinic", TokenMaxCounts, MaleDetails, FemaleDetails, ChildDetails, searchResult: undefined});
+		});
+	} else {
+		SearchPatient.ExecuteQuery(searchOption, searchKeyword, db_connection, function (data) {
+			SQL_GetTokenInfo.ExecuteQuery(undefined, db_connection, function (TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails) {
+				console.log(TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails);
+				res.render('token-generation', { title: "Token Generation | Chawla Clinic", TokenMaxCounts, MaleDetails, FemaleDetails, ChildDetails, searchResult: data});
+			});
+		});
+	}
+	
 });
 
-// app.get('/token-generation', (req, res) => {
-// 	SQL_GetTokenInfo.ExecuteQuery(undefined, db_connection, function (TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails) {
-// 		console.log(TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails);
-// 		res.render('token-generation', { title: "Token Generation | Chawla Clinic", TokenMaxCounts, MaleDetails, FemaleDetails, ChildDetails});
-// 	});
-// });
+app.post('/token-generation', (req, res) => {
+	console.log(req.body);
+	const BackupDB = req.body.BackupDatabase;
+	const ResetTokenData = req.body.ResetTokenData;
+	const ReprintToken = req.body.ReprintToken;
+	const TokenPatientID = req.body.TokenPatientID;
+	const TokenName = req.body.TokenName;
+	const TokenType = req.body.TokenType;
 
-// app.post('/token-generation', (req, res) => {
-// 	console.log(req.body);
-//  const BackupDB = req.body.BackupDatabase;
-// 	if(req.body.ResetTokenData == 'true') {
-// 		SQL_ResetTokenData.ExecuteQuery(db_connection, function () {
-// 			SQL_GetTokenInfo.ExecuteQuery(undefined, db_connection, function (TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails) {
-// 				res.redirect('back');
-// 				// res.render('token-generation', { title: "Token Generation | Chawla Clinic", TokenMaxCounts, MaleDetails, FemaleDetails, ChildDetails});
-// 			});
-// 		});
-// 	} else if(req.body.Name != undefined && req.body.Type != undefined && req.body.TokenDateTime != undefined) {
-// 		SQL_AddTokenInfo.ExecuteQuery(req.body, SQL_GetTokenInfo, db_connection, function (NewTokenNumber) {
-// 			console.log(req.body);
-// 			var spawn = require("child_process").spawn;
-// 			var process = spawn('java',["-classpath","./Java_src","TokenPrinting",req.body.Type.toUpperCase(),NewTokenNumber,"BCPrinter"]);
-// 			process.stdout.on('data',function(data){
-// 				console.log(data.toString());
-// 			});
-// 			SQL_GetTokenInfo.ExecuteQuery(undefined, db_connection, function (TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails) {
-// 				res.redirect('back');
-// 				// res.render('token-generation', { title: "Token Generation | Chawla Clinic", TokenMaxCounts, MaleDetails, FemaleDetails, ChildDetails});
-// 			});
-// 		});
-// 	} else if(BackupDB != undefined) {
-// 		BackupDatabase(function(filepath) {
-// 			if(filepath != false) {
-// 				res.download(filepath);
-// 			}
-// 		});
-// 	}
-// });
+	const currentDateTime = new Date();
+	const TokenDateTime = currentDateTime.getFullYear() + "-" + String(currentDateTime.getMonth() + 1).padStart(2, '0') + "-" + String(currentDateTime.getDate()).padStart(2, '0') + " " + String(currentDateTime.getHours()).padStart(2, '0') + ":" + String(currentDateTime.getMinutes()).padStart(2, '0') + ":" + String(currentDateTime.getSeconds()).padStart(2, '0');
+  
+	if(ResetTokenData == 'true') {
+		SQL_ResetTokenData.ExecuteQuery(db_connection, function () {
+			SQL_GetTokenInfo.ExecuteQuery(undefined, db_connection, function (TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails) {
+				res.redirect('token-generation');
+			});
+		});
+	} else if(ReprintToken !== undefined) {
+		const TokenTypeChar = ReprintToken[0];
+		const TokenTypeToPrint = TokenTypeChar === "M" ? "Male" : TokenTypeChar === "F" ? "Female" : TokenTypeChar === "C" ? "Child" : undefined;
+		const TokenNumberToPrint = ReprintToken.substring(1);
+		printToken(TokenNumberToPrint, TokenTypeToPrint, undefined);
+		
+	} else if((TokenName !== undefined && TokenType !== undefined) || (TokenPatientID !== undefined)) {
+		SQL_AddTokenInfo.ExecuteQuery(TokenPatientID, TokenName, TokenType, TokenDateTime, SQL_GetTokenInfo, SearchPatient, db_connection, function (TokenNum, TokenNumType, PatientID) {
+			SQL_GetTokenInfo.ExecuteQuery(undefined, db_connection, function (TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails) {
+				printToken(TokenNum, TokenNumType, TokenPatientID);
+				res.redirect('token-generation');
+			});
+		});
+	} else if(BackupDB !== undefined) {
+		BackupDatabase(function(filepath) {
+			if(filepath !== false) {
+				res.download(filepath);
+			}
+		});
+	}
+});
 
 app.get('/inventory', (req, res) => {
 	console.log(req.query);
+	// const completeUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
 	GetInventoryData(-1,-1,function(responseValues) {
 		res.render('inventory', responseValues);
 	});
