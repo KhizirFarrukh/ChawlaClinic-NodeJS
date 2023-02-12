@@ -15,7 +15,7 @@ function ExecuteQuery(MaxCount, con, callback) {
     if(result[0].MaleMax !== null) {
       TokenMaxCounts.Male = result[0].MaleMax;
     }
-    if(MaxCount == "Male") {
+    if(MaxCount === "Male") {
       callback(TokenMaxCounts.Male);
     } else {
       con.query(sql_MaxFemaleCount, function (err, result) {
@@ -23,7 +23,7 @@ function ExecuteQuery(MaxCount, con, callback) {
         if(result[0].FemaleMax !== null) {
           TokenMaxCounts.Female = result[0].FemaleMax;
         }
-        if(MaxCount == "Female") {
+        if(MaxCount === "Female") {
           callback(TokenMaxCounts.Female);
         } else {
           con.query(sql_MaxChildCount, function (err, result) {
@@ -31,7 +31,7 @@ function ExecuteQuery(MaxCount, con, callback) {
             if(result[0].ChildMax !== null) {
               TokenMaxCounts.Child = result[0].ChildMax;
             }
-            if(MaxCount == "Child") {
+            if(MaxCount === "Child") {
               callback(TokenMaxCounts.Child);
             } else {
               con.query(sql_MaleDetails, function (err, result) {

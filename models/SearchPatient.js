@@ -1,15 +1,15 @@
-function ExecuteQuery(table, attrib, val, con, callback) {
-    var sql = "SELECT * FROM " + table + " WHERE ";
-    if(attrib == "CaseNo") {
-        val = val.toLowerCase();
-        sql += "LOWER(CaseNo) LIKE '%" + val + "%'";
-    } else if(attrib == "MobileNum") {
-        sql += "PhoneNumber = '" + val + "'";
-    } else if(attrib == "Name") {
-        val = val.toLowerCase();
-        sql += "LOWER(PatientName) LIKE '%" + val + "%'";
-    } else if(attrib == "PatientID") {
-        sql += "PatientID = " + val;
+function ExecuteQuery(searchOption, searchKeyword, con, callback) {
+    var sql = "SELECT * FROM patientdetails WHERE ";
+    if(searchOption === "CaseNo") {
+        searchKeyword = searchKeyword.toLowerCase();
+        sql += "LOWER(CaseNo) LIKE '%" + searchKeyword + "%'";
+    } else if(searchOption === "MobileNum") {
+        sql += "PhoneNumber = '" + searchKeyword + "'";
+    } else if(searchOption === "Name") {
+        searchKeyword = searchKeyword.toLowerCase();
+        sql += "LOWER(PatientName) LIKE '%" + searchKeyword + "%'";
+    } else if(searchOption === "PatientID") {
+        sql += "PatientID = " + searchKeyword;
     }
     sql += " ORDER BY FirstVisit DESC LIMIT 10;";
     console.log(sql)
