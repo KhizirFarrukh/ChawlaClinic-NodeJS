@@ -1,0 +1,21 @@
+<html>
+  <head>
+    <script>
+    </script>
+  </head>
+  <body>
+    <h3>Please wait. Printing....</h3>
+    <div id="print-data" data-printmethod="<%= printmethod %>" data-params="<%= params %>" data-redirecturl="<%= redirectURL %>"></div>
+    <script>
+      const data = document.getElementById("print-data");
+      console.log(data);
+      const printmethod = data.getAttribute("data-printmethod");
+      const params = data.getAttribute("data-params");
+      const redirectURL = data.getAttribute("data-redirecturl");
+      setTimeout(() => {
+        window.open("PrintManager://" + printmethod + "?" + params, "_blank");
+        window.location.href = redirectURL;
+      }, 1000);
+    </script>
+  </body>
+</html>
