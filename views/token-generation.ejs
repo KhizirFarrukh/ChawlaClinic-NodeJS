@@ -38,114 +38,141 @@
 		</div>
 		<br><br>
 		<div class="d-flex justify-content-between" style="margin-top: 50px;">
-			<div style="margin-right: 20px;max-width: 50%;max-height: 30px;">
-				<form method="post">
-					<div class="input-group mb-3">
-						<span class="input-group-text" id="basic-addon1">Enter Patient Name</span>
-						<input type="text" class="form-control" id="PatientNameInput" name="TokenName" style="max-width: 500px;">
-						<select class="form-select" id="PatientTypeSelect" name="TokenType" style="max-width: 130px;">
-							<option selected>Select Type</option>
-							<option value="Male">Male</option>
-							<option value="Female">Female</option>
-							<option value="Child">Child</option>
-						</select>
-						<button class="btn btn-outline-primary" type="submit" id="PatientNamePrint">
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-printer"
-								viewBox="0 0 16 16">
-								<path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z" />
-								<path
-									d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z" />
-							</svg> Print Token
-						</button>
-					</div>
-				</form>
+			<div style="margin-right: 20px;max-width: 50%;">
+				<div>
+					<form method="post">
+						<div class="input-group mb-3">
+							<span class="input-group-text" id="basic-addon1">Enter Patient Name</span>
+							<input type="text" class="form-control" id="PatientNameInput" name="TokenName" style="max-width: 500px;">
+							<select class="form-select" id="PatientTypeSelect" name="TokenType" style="max-width: 130px;">
+								<option selected>Select Type</option>
+								<option value="Male">Male</option>
+								<option value="Female">Female</option>
+								<option value="Child">Child</option>
+							</select>
+							<button class="btn btn-outline-primary" type="submit" id="PatientNamePrint">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-printer"
+									viewBox="0 0 16 16">
+									<path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z" />
+									<path
+										d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z" />
+								</svg> Print Token
+							</button>
+						</div>
+					</form>
+				</div>
+				<h3 class="text-center">OR</h3>
+				<div style="margin-top: 20px;">
+					<form>
+						<div class="input-group mb-3" style="max-height: 30px;">
+							<span class="input-group-text" id="basic-addon1">Search for patient</span>
+							<input type="text" class="form-control" id="searchkeyword" name="searchkeyword" style="max-width: 500px;">
+							<button class="btn btn-outline-primary" type="submit" id="SearchPatientBtn">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+									<path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+								</svg> Search
+							</button>
+						</div>
+						<div class="d-flex justify-content-between">
+							<div class="form-check">
+								<input class="form-check-input" type="radio" name="searchoption" id="CaseNoRadio" value="CaseNo" checked>
+								<label class="form-check-label" for="CaseNoRadio">
+									Case Number
+								</label>
+							</div>
+							<div class="form-check">
+								<input class="form-check-input" type="radio" name="searchoption" id="MobileNumRadio" value="MobileNum">
+								<label class="form-check-label" for="MobileNumRadio">
+									Mobile Number
+								</label>
+							</div>
+							<div class="form-check">
+								<input class="form-check-input" type="radio" name="searchoption" id="NameRadio" value="Name">
+								<label class="form-check-label" for="NameRadio">
+									Patient Name
+								</label>
+							</div>
+						</div>
+					</form>
+					<% if(searchResult != undefined) {%>
+						<% if (searchResult.length > 0) { %>
+							<table class="table">
+								<thead>
+									<tr>
+										<th scope="col">#</th>
+										<th scope="col">Case No.</th>
+										<th scope="col">Patient Name</th>
+										<th scope="col">Mobile Number</th>
+										<th scope="col">First Visit</th>
+										<th scope="col">Status</th>
+									</tr>
+								</thead>
+								<tbody>
+										<% for ( let i = 0;i < searchResult.length;i++) { %>
+											<% var date = searchResult[i].FirstVisit; %>
+											<% date = String(date.getDate()).padStart(2, '0') + "-" + String(date.getMonth() + 1).padStart(2, '0') + "-" + date.getFullYear(); %> 
+											<tr>
+												<th scope="row"><%= i+1 %> </th>
+												<td><%= searchResult[i].CaseNo %></td>
+												<td><%= searchResult[i].PatientName %></td>
+												<td><%= searchResult[i].PhoneNumber %></td>
+												<td><%= date %></td>
+												<td><%= searchResult[i].Status %></td>
+												<td>
+													<form method="post">
+														<button class="btn btn-primary" type="submit" name="TokenPatientID" value="<%= searchResult[i].PatientID %>" >Select</button>
+													</form>
+												</td>
+											</tr>
+										<% } %>
+								</tbody>
+							</table>
+						<% } else { %>
+							<div class="alert alert-danger" role="alert">
+								No Results Found
+							</div>
+						<% } %>
+					<% } %>
+				</div>
 			</div>
 			<div class="vr"></div>
 			<div style="margin-left: 20px;max-width: 50%;">
-				<form>
-					<div class="input-group mb-3" style="max-height: 30px;">
-						<span class="input-group-text" id="basic-addon1">Search for patient</span>
-						<input type="text" class="form-control" id="searchkeyword" name="searchkeyword" style="max-width: 500px;">
-						<button class="btn btn-outline-primary" type="submit" id="SearchPatientBtn">
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-								<path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-							</svg> Search
-						</button>
+				<h3 style="color: red;text-decoration: underline;">Emergency Token Number</h3>
+				<form method="post">
+					<div class="input-group mb-3">
+						<span class="input-group-text" id="basic-addon1">Patient's Name</span>
+						<input type="text" class="form-control" id="patientname" name="patientname" placeholder="Enter Patient's Name" style="max-width: 400px;" required>
 					</div>
-					<div class="d-flex justify-content-between">
-						<div class="form-check">
-							<input class="form-check-input" type="radio" name="searchoption" id="CaseNoRadio" value="CaseNo" checked>
-							<label class="form-check-label" for="CaseNoRadio">
-								Case Number
-							</label>
-						</div>
-						<div class="form-check">
-							<input class="form-check-input" type="radio" name="searchoption" id="MobileNumRadio" value="MobileNum">
-							<label class="form-check-label" for="MobileNumRadio">
-								Mobile Number
-							</label>
-						</div>
-						<div class="form-check">
-							<input class="form-check-input" type="radio" name="searchoption" id="NameRadio" value="Name">
-							<label class="form-check-label" for="NameRadio">
-								Patient Name
-							</label>
-						</div>
+					<div class="input-group mb-3">
+						<span class="input-group-text" id="basic-addon1">Age (Years)</span>
+						<input type="number" class="form-control" id="ageyears" style="max-width: 100px;" name="ageyears" value=0
+							min=0 required>
+						<span class="input-group-text" id="basic-addon1">(Months)</span>
+						<input type="number" class="form-control" id="agemonths" style="max-width: 100px;" name="agemonths" value=0
+							min=0 max=11 required>
+							<label class="input-group-text" for="gender" style="margin-left: 10px;">Gender</label>
+						<select class="form-select" id="gender" name="gender" style="max-width: 110px;">
+							<option value="M" selected>Male</option>
+							<option value="F">Female</option>
+						</select>
 					</div>
+					<div class="input-group mb-3">
+						<span class="input-group-text" id="basic-addon1">Guardian's Name</span>
+						<input type="text" class="form-control" id="guardianname" name="guardianname"
+							placeholder="Enter Guardian's Name" style="max-width: 400px;">
+					</div>
+					<div class="input-group mb-3">
+						<span class="input-group-text" id="basic-addon1">Case Number (Auto Generated)</span>
+					</div>
+					<button type="submit" class="btn btn-primary" name="EmergencyPatientToken" value="True">
+						<svg xmlns="http://www.w3.org/2000/svg" width="30"
+							height="30" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+							<path
+								d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+						</svg>
+						Add Patient and Print
+					</button>
 				</form>
-				<% if(searchResult != undefined) {%>
-          <% if (searchResult.length > 0) { %>
-            <!-- <div class="accordion" id="SearchFilters">
-              <div class="accordion-item">
-                <h2 class="accordion-header" id="headingTwo">
-                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                    Filters
-                  </button>
-                </h2>
-                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
-                  <div class="accordion-body">
-                    set filters here...
-                  </div>
-                </div>
-              </div>
-            </div> -->
-            <table class="table">
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Case No.</th>
-                  <th scope="col">Patient Name</th>
-                  <th scope="col">Mobile Number</th>
-                  <th scope="col">First Visit</th>
-                  <th scope="col">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                  <% for ( let i = 0;i < searchResult.length;i++) { %>
-                    <% var date = searchResult[i].FirstVisit; %>
-                    <% date = String(date.getDate()).padStart(2, '0') + "-" + String(date.getMonth() + 1).padStart(2, '0') + "-" + date.getFullYear(); %> 
-                    <tr>
-											<th scope="row"><%= i+1 %> </th>
-											<td><%= searchResult[i].CaseNo %></td>
-											<td><%= searchResult[i].PatientName %></td>
-											<td><%= searchResult[i].PhoneNumber %></td>
-											<td><%= date %></td>
-											<td><%= searchResult[i].Status %></td>
-											<td>
-												<form method="post">
-													<button class="btn btn-primary" type="submit" name="TokenPatientID" value="<%= searchResult[i].PatientID %>" >Select</button>
-												</form>
-											</td>
-                    </tr>
-                  <% } %>
-              </tbody>
-            </table>
-          <% } else { %>
-            <div class="alert alert-danger" role="alert">
-              No Results Found
-            </div>
-          <% } %>
-        <% } %>
 			</div>
 		</div>
 		<hr style="margin-top: 30px;">
@@ -163,10 +190,22 @@
 						<% for(let i=0;i<MaleDetails.length;i+=1) { %>
 							<tr>
 								<td><%= MaleDetails[i].TokenNumber %></td>
-								<td><%= MaleDetails[i].PatientName %></td>
+								<% if(MaleDetails[i].PatientID !== null) { %>
+									<td>
+										<a href="/patient-details?id=<%= MaleDetails[i].PatientID %>" style="padding-left: 0;" class="link-primary nav-link">
+											<%= MaleDetails[i].PatientName %>&nbsp
+											<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">
+												<path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/>
+												<path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/>
+											</svg>
+										</a>
+									</td>
+								<% } else { %>
+									<td><%= MaleDetails[i].PatientName %></td>
+								<% } %>
 								<td>
 									<form method="post">
-										<button type="submit" class="btn nav-link" name="ReprintToken" value="M<%= MaleDetails[i].TokenNumber %>">
+										<button type="submit" class="btn nav-link" name="ReprintTokenID" value="<%= MaleDetails[i].TokenID %>">
 											<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-printer" viewBox="0 0 16 16">
 												<path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
 												<path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/>
@@ -192,10 +231,22 @@
 						<% for(let i=0;i<FemaleDetails.length;i+=1) { %>
 							<tr>
 								<td><%= FemaleDetails[i].TokenNumber %></td>
-								<td><%= FemaleDetails[i].PatientName %></td>
+								<% if(FemaleDetails[i].PatientID !== null) { %>
+									<td>
+										<a href="/patient-details?id=<%= FemaleDetails[i].PatientID %>" style="padding-left: 0;" class="link-primary nav-link">
+											<%= FemaleDetails[i].PatientName %>&nbsp
+											<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">
+												<path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/>
+												<path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/>
+											</svg>
+										</a>
+									</td>
+								<% } else { %>
+									<td><%= FemaleDetails[i].PatientName %></td>
+								<% } %>
 								<td>
 									<form method="post">
-										<button type="submit" class="btn nav-link" name="ReprintToken" value="F<%= FemaleDetails[i].TokenNumber %>">
+										<button type="submit" class="btn nav-link" name="ReprintTokenID" value="<%= FemaleDetails[i].TokenID %>">
 											<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-printer" viewBox="0 0 16 16">
 												<path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
 												<path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/>
@@ -221,10 +272,22 @@
 						<% for(let i=0;i<ChildDetails.length;i+=1) { %>
 							<tr>
 								<td><%= ChildDetails[i].TokenNumber %></td>
-								<td><%= ChildDetails[i].PatientName %></td>
+								<% if(ChildDetails[i].PatientID !== null) { %>
+									<td>
+										<a href="/patient-details?id=<%= ChildDetails[i].PatientID %>" style="padding-left: 0;" class="link-primary nav-link">
+											<%= ChildDetails[i].PatientName %>&nbsp
+											<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">
+												<path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/>
+												<path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/>
+											</svg>
+										</a>
+									</td>
+								<% } else { %>
+									<td><%= ChildDetails[i].PatientName %></td>
+								<% } %>
 								<td>
 									<form method="post">
-										<button type="submit" class="btn nav-link" name="ReprintToken" value="C<%= ChildDetails[i].TokenNumber %>">
+										<button type="submit" class="btn nav-link" name="ReprintTokenID" value="<%= ChildDetails[i].TokenID %>">
 											<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-printer" viewBox="0 0 16 16">
 												<path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
 												<path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/>
@@ -262,7 +325,13 @@
 						</div>
 						<div class="modal-footer">
 							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Go Back</button>
-							<button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick="resetdata();">Yes I'm sure</button>
+							<form method="post">
+								<button type="submit" class="btn btn-danger" name="ResetTokenData" value="true" data-bs-dismiss="modal">Yes I'm sure</button>
+							</form>
+							<!-- <button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick="resetdata();">Yes I'm sure</button> -->
+							<script>
+
+							</script>
 						</div>
 					</div>
 				</div>
