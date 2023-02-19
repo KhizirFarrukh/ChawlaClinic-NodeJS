@@ -1,16 +1,17 @@
 const express = require('express');
 const bodyParser = require("body-parser");
+const fs = require('fs');
+const { exec } = require('child_process');
 
 const db_connection = require('./models/db_connect');
-const { exec } = require('child_process');
 
 const AddPaymentHashCode = require('./models/AddPaymentHashCode');
 const GetPaymentIDFromHash = require('./models/GetPaymentIDFromHash');
 
 const SQL_AddTokenInfo = require('./models/SQL_AddTokenInfo');
 const SQL_GetTokenInfo = require('./models/SQL_GetTokenInfo');
+const GetTokenInfoByID = require('./models/GetTokenInfoByID');
 const SQL_ResetTokenData = require('./models/SQL_ResetTokenData');
-
 
 const AddPatient = require('./models/AddPatient');
 const SearchPatient = require('./models/SearchPatient');
@@ -48,7 +49,9 @@ const UpdateProduct = require('./models/UpdateProduct');
 const AddDiscontinuedProduct = require('./models/AddDiscontinuedProduct');
 const GetDiscontinuedProducts = require('./models/GetDiscontinuedProducts');
 const RemoveDiscontinuedProduct = require('./models/RemoveDiscontinuedProduct');
-const { parse } = require('path');
+
+const WebConfigData = fs.readFileSync('webconfig.json');
+const WebConfig = JSON.parse(WebConfigData);
 
 const isNumeric = str => /^\d+$/.test(str);
 const isAlphaNumericLowercase = str => /^[a-z0-9]+$/.test(str);
@@ -92,13 +95,24 @@ function PatientPaymentRecordGet(PatientID, ID_represents, retrieveLimit, callba
 	});
 }
 
+function DBBackupHandler(BackupDBPass, req, res) {
+	if(BackupDBPass === WebConfig.db_backup_password) {
+		BackupDatabase(function(filepath) {
+			if(filepath !== false) {
+				res.download(filepath);
+			}
+		});
+	} else {
+		res.redirect(req.headers.referer || '/');
+	}
+}
+
 function BackupDatabase(callback) {
 	const current_timestamp = new Date(Date.now() + (5*60*60*1000)).toISOString().slice(0,19).replace(/-/g,"").replace(/:/g,"").replace(/T/g,"");
-	// console.log(current_timestamp);
 	
-	const db_username = "root";
-	const db_pass = "root";
-	const db_name = "chawlaclinic";
+	const db_username = WebConfig.database.user;
+	const db_pass = WebConfig.database.password;
+	const db_name = WebConfig.database.database;
 	const db_backup_folder = "DB_Backup";
 	const db_backup_filename = "db_backup_" + current_timestamp + ".sql";
 	const db_backup_filepath = db_backup_folder + "\\" + db_backup_filename;
@@ -142,19 +156,6 @@ function GetInventoryData(editProductID,editDressingID,callback) {
 	});
 }
 
-// function printToken(TokenNum, TokenNumType, PatientID) {
-// 	if(PatientID !== undefined) {
-// 		SearchPatient.ExecuteQuery("PatientID", PatientID, db_connection, function (patientDetails) {
-// 			const PatientCaseNum = patientDetails[0].CaseNo;
-// 			console.log("print token data: ", TokenNum, TokenNumType, PatientCaseNum);
-// 			// printing code here
-// 		});
-// 	} else {
-// 		console.log("print token data: ", TokenNum, TokenNumType);
-// 		// printing code here
-// 	}
-// }
-
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -163,7 +164,7 @@ app.use("/static", express.static(__dirname + '/static'));
 app.use("/static/css", express.static(__dirname + '/static/css'));
 app.use("/static/js", express.static(__dirname + '/static/js'));
 
-app.listen(3000);
+app.listen(WebConfig.port);
 
 app.set('view engine', 'ejs');
 
@@ -180,7 +181,7 @@ app.get('/patient', (req, res) => {
 	if (searchOption === undefined) {
 		res.render('patient', { title: "Patient | Chawla Clinic", searchResult: undefined });
 	} else {
-		SearchPatient.ExecuteQuery(searchOption, searchKeyword, db_connection, function (data) {
+		SearchPatient.ExecuteQuery(searchOption, searchKeyword, "patientsearch", db_connection, function (data) {
 			res.render('patient', { title: "Patient | Chawla Clinic", searchResult: data });
 		});
 	}
@@ -188,17 +189,13 @@ app.get('/patient', (req, res) => {
 
 app.post('/patient', (req, res) => {
 	console.log('req body',req.body);
-	const BackupDB = req.body.BackupDatabase;
-	if(req.body.AddPatient != undefined) {
-		AddPatient.ExecuteQuery(req.body, db_connection, function (data) {
-			res.redirect('/patient-details?id=' + data.insertId);
+	const BackupDBPass = req.body.BackupDBPassInput;
+	if(req.body.AddPatient !== undefined) {
+		AddPatient.ExecuteQuery(req.body, db_connection, function (PatientID) {
+			res.redirect('/patient-details?id=' + PatientID);
 		});
-	} else if(BackupDB != undefined) {
-		BackupDatabase(function(filepath) {
-			if(filepath != false) {
-				res.download(filepath);
-			}
-		});
+	} else if(BackupDBPass !== undefined) {
+		DBBackupHandler(BackupDBPass, req, res);
 	}
 });
 
@@ -209,7 +206,7 @@ app.get('/patient-details', (req, res) => {
 		res.status(404);
 		res.render('page-not-found')
 	} else {
-		SearchPatient.ExecuteQuery("PatientID", PatientID, db_connection, function (data) {
+		SearchPatient.ExecuteQuery("PatientID", PatientID, "patientinfo", db_connection, function (data) {
 			console.log(data);
 			if (data.length == 1) {
 				GetCurrentBalance.ExecuteQuery(PatientID, db_connection, function (bal) {
@@ -228,7 +225,7 @@ app.get('/patient-details', (req, res) => {
 
 app.post('/patient-details', (req, res) => {
 	const PatientID = req.query.id;
-	const BackupDB = req.body.BackupDatabase;
+	const BackupDBPass = req.body.BackupDBPassInput;
 	const ReprintPaymentID = req.body.ReprintPayment;
 	var editMode = false;
 	console.log(req.body);
@@ -243,12 +240,8 @@ app.post('/patient-details', (req, res) => {
 		res.status(404);
 		res.render('page-not-found')
 	} else {
-		if(BackupDB != undefined) {
-			BackupDatabase(function(filepath) {
-				if(filepath != false) {
-					res.download(filepath);
-				}
-			});
+		if(BackupDBPass !== undefined) {
+			DBBackupHandler(BackupDBPass, req, res);
 		} else if(ReprintPaymentID !== undefined) {
 			GetPaymentSummary.ExecuteQuery(parseInt(ReprintPaymentID), db_connection, function(result) {
 				console.log(result);
@@ -266,7 +259,7 @@ app.post('/patient-details', (req, res) => {
 				}
 			});
 		} else {
-			SearchPatient.ExecuteQuery("PatientID", PatientID, db_connection, function (data) {
+			SearchPatient.ExecuteQuery("PatientID", PatientID, "patientinfo", db_connection, function (data) {
 				console.log(data);
 				GetCurrentBalance.ExecuteQuery(PatientID, db_connection, function (bal) {
 					var CurrentBalance = bal[0].paid + bal[0].discount - bal[0].total;
@@ -281,7 +274,7 @@ app.post('/patient-details', (req, res) => {
 });
 
 app.get('/patient-details/add-payment-record', (req, res) => {
-	if(req.query.addID != undefined) {
+	if(req.query.addID !== undefined) {
 		var PatientID = req.query.addID;
 		GetDiscountMode.ExecuteQuery(PatientID, db_connection, function(DiscountOption) {
 			console.log(DiscountOption);
@@ -297,28 +290,28 @@ app.get('/patient-details/add-payment-record', (req, res) => {
 app.post('/patient-details/add-payment-record', (req, res) => {
 	console.log(req.body);
 	console.log(req.query);
-	const BackupDB = req.body.BackupDatabase;
+	const BackupDBPass = req.body.BackupDBPassInput;
 	var PatientID = req.query.addID;
-	if(PatientID != undefined) {
+	if(PatientID !== undefined) {
 		GetDiscountMode.ExecuteQuery(PatientID, db_connection, function(DiscountOption) {
 			console.log(DiscountOption);
 			const discountOption = DiscountOption[0].DiscountMode;
-			if (req.body.incrementQuantity != undefined) {
+			if (req.body.incrementQuantity !== undefined) {
 				console.log("incrementQuantity");
 				CartManagement.ExecuteQuery(req.body.incrementQuantity, PatientID, 1, db_connection, function (result) {
 					console.log(result);
 					AddPaymentRecordCartGet(PatientID,undefined,discountOption,res);
 				});
-			} else if (req.body.decrementQuantity != undefined) {
+			} else if (req.body.decrementQuantity !== undefined) {
 				console.log("decrementQuantity");
 				CartManagement.ExecuteQuery(req.body.decrementQuantity, PatientID, -1, db_connection, function (result) {
 					console.log(result);
 					AddPaymentRecordCartGet(PatientID,undefined,discountOption,res);
 				});
-			} else if (req.body.ConfirmCartItems != undefined) {
+			} else if (req.body.ConfirmCartItems !== undefined) {
 				console.log("ConfirmCartItems");
 				var DiscountAmount = 0;
-				if(req.body.DiscountAmount != undefined) {
+				if(req.body.DiscountAmount !== undefined) {
 					DiscountAmount = req.body.DiscountAmount;
 				}
 				GetGuestPatient.ExecuteQuery(db_connection, function(guest) {
@@ -350,25 +343,25 @@ app.post('/patient-details/add-payment-record', (req, res) => {
 						
 					});
 				});
-			} else if (req.body.prodID != undefined) {
+			} else if (req.body.prodID !== undefined) {
 				console.log("prodID");
 				CartManagement.ExecuteQuery(req.body.prodID, PatientID, 1, db_connection, function (result) {
 					console.log(result);
 					AddPaymentRecordCartGet(PatientID,undefined,discountOption,res);
 				});
-			} else if (req.body.searchproducts != undefined) {
+			} else if (req.body.searchproducts !== undefined) {
 				console.log("searchproducts");
 				SearchProducts.ExecuteQuery(req.body.searchproducts, db_connection, function (searchResult) {
 					console.log(searchResult);
 					AddPaymentRecordCartGet(PatientID,searchResult,discountOption,res);
 				});
-			} else if(req.body.AddTempDressingRecord != undefined) {
+			} else if(req.body.AddTempDressingRecord !== undefined) {
 				console.log("AddTempDressingRecord");
 				AddTempDressingRecord.ExecuteQuery(req.body, PatientID, GetPadPricing, db_connection, function () {
 					AddPaymentRecordCartGet(PatientID,undefined,discountOption,res);
 				});
 			} 
-			else if(req.body.RemoveTempDressingHold != undefined) {
+			else if(req.body.RemoveTempDressingHold !== undefined) {
 				console.log("RemoveTempDressingHold");
 				if(isNumeric(req.body.RemoveTempDressingHold)) {
 					const TempID = parseInt(req.body.RemoveTempDressingHold);
@@ -379,12 +372,8 @@ app.post('/patient-details/add-payment-record', (req, res) => {
 			}
 		});
 	}
-	if(BackupDB != undefined) {
-		BackupDatabase(function(filepath) {
-			if(filepath != false) {
-				res.download(filepath);
-			}
-		});
+	if(BackupDBPass !== undefined) {
+		DBBackupHandler(BackupDBPass, req, res);
 	}
 });
 
@@ -412,17 +401,6 @@ app.get('/patient-details/check-payment', (req, res) => {
 	}
 });
 
-app.get('/patient-details/add-general-medicine-record', (req, res) => {
-	res.redirect('/under-construction');
-});
-
-app.get('/patient-details/general-medicine-records', (req, res) => {
-	res.redirect('/under-construction');
-});
-app.get('/patient-details/add-charges', (req, res) => {
-	res.redirect('/under-construction');
-});
-
 app.get('/patient-details/payment-records', (req, res) => {
 	const PatientID = req.query.id;
 	PatientPaymentRecordGet(PatientID, "Patient", false, function(PaymentRecords) {
@@ -430,9 +408,32 @@ app.get('/patient-details/payment-records', (req, res) => {
 	});
 });
 
-// app.get('/token-generation', (req, res) => {
-// 	res.redirect('/under-construction');
-// });
+app.post('/patient-details/payment-records', (req, res) => {
+	console.log(req.body);
+	const PatientID = req.query.id;
+	const ReprintPaymentID = req.body.ReprintPayment;
+	if(ReprintPaymentID !== undefined) {
+		GetPaymentSummary.ExecuteQuery(parseInt(ReprintPaymentID), db_connection, function(result) {
+			console.log(result);
+			const Payment_HashValue = result[0].PaymentHashCode;
+			if(Payment_HashValue === null) {
+				res.redirect(req.originalUrl);
+			} else {
+				const AmountPaid = result[0].AmountPaid;
+				const PaymentDate = result[0].Date;
+				const PaymentDateObj = new Date(PaymentDate);
+				const processedPaymentDate = String(PaymentDateObj.getDate()).padStart(2, '0' ) + "%2F" + String(PaymentDateObj.getMonth() + 1).padStart(2, '0' ) + "%2F" + PaymentDateObj.getFullYear();
+				const redirectURL = req.originalUrl;
+				console.log("Print Handler Values: ", Payment_HashValue, AmountPaid, processedPaymentDate, redirectURL);
+				res.render('print-handler', {printmethod:"printpaymentreceipt", params:"PaymentHashID=" + Payment_HashValue + "&AmountPaid=" + AmountPaid + "&PaymentDate=" + processedPaymentDate, redirectURL});
+			}
+		});
+	} else {
+		PatientPaymentRecordGet(PatientID, "Patient", false, function(PaymentRecords) {
+			res.render('payment-records', { title: "Payment Records | Chawla Clinic", ...PaymentRecords});
+		});
+	}
+});
 
 app.get('/token-generation', (req, res) => {
 	console.log(req.query);
@@ -444,7 +445,7 @@ app.get('/token-generation', (req, res) => {
 			res.render('token-generation', { title: "Token Generation | Chawla Clinic", TokenMaxCounts, MaleDetails, FemaleDetails, ChildDetails, searchResult: undefined});
 		});
 	} else {
-		SearchPatient.ExecuteQuery(searchOption, searchKeyword, db_connection, function (data) {
+		SearchPatient.ExecuteQuery(searchOption, searchKeyword, "token", db_connection, function (data) {
 			SQL_GetTokenInfo.ExecuteQuery(undefined, db_connection, function (TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails) {
 				console.log(TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails);
 				res.render('token-generation', { title: "Token Generation | Chawla Clinic", TokenMaxCounts, MaleDetails, FemaleDetails, ChildDetails, searchResult: data});
@@ -456,47 +457,79 @@ app.get('/token-generation', (req, res) => {
 
 app.post('/token-generation', (req, res) => {
 	console.log(req.body);
-	const BackupDB = req.body.BackupDatabase;
+	const BackupDBPass = req.body.BackupDBPassInput;
 	const ResetTokenData = req.body.ResetTokenData;
-	const ReprintToken = req.body.ReprintToken;
+	const ReprintTokenID = req.body.ReprintTokenID;
 	const TokenPatientID = req.body.TokenPatientID;
 	const TokenName = req.body.TokenName;
 	const TokenType = req.body.TokenType;
+	const EmergencyPatientToken = req.body.EmergencyPatientToken;
 
 	const currentDateTime = new Date();
 	const TokenDateTime = currentDateTime.getFullYear() + "-" + String(currentDateTime.getMonth() + 1).padStart(2, '0') + "-" + String(currentDateTime.getDate()).padStart(2, '0') + " " + String(currentDateTime.getHours()).padStart(2, '0') + ":" + String(currentDateTime.getMinutes()).padStart(2, '0') + ":" + String(currentDateTime.getSeconds()).padStart(2, '0');
   
-	if(ResetTokenData == 'true') {
+	if(ResetTokenData === 'true') {
 		SQL_ResetTokenData.ExecuteQuery(db_connection, function () {
-			SQL_GetTokenInfo.ExecuteQuery(undefined, db_connection, function (TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails) {
-				res.redirect('token-generation');
-			});
+			res.redirect('token-generation');
 		});
-	} else if(ReprintToken !== undefined) {
-		const TokenTypeChar = ReprintToken[0];
-		const TokenTypeToPrint = TokenTypeChar === "M" ? "Male" : TokenTypeChar === "F" ? "Female" : TokenTypeChar === "C" ? "Child" : undefined;
-		const TokenNumberToPrint = ReprintToken.substring(1);
-		printToken(TokenNumberToPrint, TokenTypeToPrint, undefined);
-		
+	} else if(ReprintTokenID !== undefined) {
+		GetTokenInfoByID.ExecuteQuery(ReprintTokenID, db_connection, function(result) {
+			const TokenCaseNo = result[0].CaseNo;
+			const TokenNumber = result[0].TokenNumber;
+			const TokenType = result[0].TokenType;
+			const TokenDateTime_unprocessed = result[0].TokenDateTime;
+			const TokenDateProcessed = String(TokenDateTime_unprocessed.getDate()).padStart(2, '0') + "/" + String(TokenDateTime_unprocessed.getMonth() + 1).padStart(2, '0') + "/" + TokenDateTime_unprocessed.getFullYear();
+			const TokenTimeProcessed = TokenDateTime_unprocessed.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+			const redirectURL = '/token-generation';
+			console.log("Print Handler Values: ", TokenCaseNo, TokenNumber, TokenType, TokenDateProcessed, TokenTimeProcessed, redirectURL);
+			res.render('print-handler', {printmethod:"printtokennumber", params:"CaseNum=" + TokenCaseNo + "&PatientType=" + TokenType + "&TokenNumber=" + TokenNumber + "&TokenDate=" + TokenDateProcessed + "&TokenTime=" + TokenTimeProcessed, redirectURL});
+		});
 	} else if((TokenName !== undefined && TokenType !== undefined) || (TokenPatientID !== undefined)) {
-		SQL_AddTokenInfo.ExecuteQuery(TokenPatientID, TokenName, TokenType, TokenDateTime, SQL_GetTokenInfo, SearchPatient, db_connection, function (TokenNum, TokenNumType, PatientID) {
-			SQL_GetTokenInfo.ExecuteQuery(undefined, db_connection, function (TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails) {
-				printToken(TokenNum, TokenNumType, TokenPatientID);
-				res.redirect('token-generation');
+		SQL_AddTokenInfo.ExecuteQuery(TokenPatientID, TokenName, TokenType, TokenDateTime, SQL_GetTokenInfo, SearchPatient, db_connection, function (TokenNum, TokenNumType, PatientID, TokenID) {
+			GetTokenInfoByID.ExecuteQuery(TokenID, db_connection, function(result) {
+				const TokenCaseNo = result[0].CaseNo;
+				const TokenNumber = result[0].TokenNumber;
+				const TokenType = result[0].TokenType;
+				const TokenDateTime_unprocessed = result[0].TokenDateTime;
+				const TokenDateProcessed = String(TokenDateTime_unprocessed.getDate()).padStart(2, '0') + "/" + String(TokenDateTime_unprocessed.getMonth() + 1).padStart(2, '0') + "/" + TokenDateTime_unprocessed.getFullYear();
+				const TokenTimeProcessed = TokenDateTime_unprocessed.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+				const redirectURL = '/token-generation';
+				console.log("Print Handler Values: ", TokenCaseNo, TokenNumber, TokenType, TokenDateProcessed, TokenTimeProcessed, redirectURL);
+				res.render('print-handler', {printmethod:"printtokennumber", params:"CaseNum=" + TokenCaseNo + "&PatientType=" + TokenType + "&TokenNumber=" + TokenNumber + "&TokenDate=" + TokenDateProcessed + "&TokenTime=" + TokenTimeProcessed, redirectURL});
 			});
 		});
-	} else if(BackupDB !== undefined) {
-		BackupDatabase(function(filepath) {
-			if(filepath !== false) {
-				res.download(filepath);
-			}
+	} else if(EmergencyPatientToken !== undefined) {
+		var AddPatientData = req.body;
+		AddPatientData.type = "B";
+		AddPatientData.disease = "";
+		AddPatientData.address = "";
+		AddPatientData.phonenum = "";
+
+		const currentDate = new Date();
+		AddPatientData.firstvisit = currentDate.getFullYear() + "-" + (currentDate.getMonth() + 1).toString().padStart(2, '0') + "-" + currentDate.getDate().toString().padStart(2, '0');
+
+		AddPatient.ExecuteQuery(AddPatientData, db_connection, function (PatientID) {
+			SQL_AddTokenInfo.ExecuteQuery(PatientID, undefined, undefined, TokenDateTime, SQL_GetTokenInfo, SearchPatient, db_connection, function (TokenNum, TokenNumType, PatientID, TokenID) {
+				GetTokenInfoByID.ExecuteQuery(TokenID, db_connection, function(result) {
+					const TokenCaseNo = result[0].CaseNo;
+					const TokenNumber = result[0].TokenNumber;
+					const TokenType = result[0].TokenType;
+					const TokenDateTime_unprocessed = result[0].TokenDateTime;
+					const TokenDateProcessed = String(TokenDateTime_unprocessed.getDate()).padStart(2, '0') + "/" + String(TokenDateTime_unprocessed.getMonth() + 1).padStart(2, '0') + "/" + TokenDateTime_unprocessed.getFullYear();
+					const TokenTimeProcessed = TokenDateTime_unprocessed.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+					const redirectURL = '/token-generation';
+					console.log("Print Handler Values: ", TokenCaseNo, TokenNumber, TokenType, TokenDateProcessed, TokenTimeProcessed, redirectURL);
+					res.render('print-handler', {printmethod:"printtokennumber", params:"CaseNum=" + TokenCaseNo + "&PatientType=" + TokenType + "&TokenNumber=" + TokenNumber + "&TokenDate=" + TokenDateProcessed + "&TokenTime=" + TokenTimeProcessed, redirectURL});
+				});
+			});
 		});
+	} else if(BackupDBPass !== undefined) {
+		DBBackupHandler(BackupDBPass, req, res);
 	}
 });
 
 app.get('/inventory', (req, res) => {
 	console.log(req.query);
-	// const completeUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
 	GetInventoryData(-1,-1,function(responseValues) {
 		res.render('inventory', responseValues);
 	});
@@ -505,7 +538,7 @@ app.get('/inventory', (req, res) => {
 app.post('/inventory', (req, res) => {
 	console.log(req.query);
 	console.log(req.body);
-	const BackupDB = req.body.BackupDatabase;
+	const BackupDBPass = req.body.BackupDBPassInput;
 	const AddCategoryName = req.body.AddCategoryName;
 	const AddProductName = req.body.AddProductName;
 	const EditProductID = req.body.EditProduct;
@@ -514,51 +547,55 @@ app.post('/inventory', (req, res) => {
 	const SaveDressingID = req.body.SaveDressingPad;
 	const ProductToDiscontinue = req.body.DiscontinueProduct;
 	const AvailableProduct = req.body.AvailableProduct;
-	if(BackupDB != undefined) {
-		BackupDatabase(function(filepath) {
-			if(filepath != false) {
-				res.download(filepath);
-			}
-		});
-	} else if(AddCategoryName != undefined) {
+	if(BackupDBPass !== undefined) {
+		DBBackupHandler(BackupDBPass, req, res);
+	} else if(AddCategoryName !== undefined) {
 		AddProductCategory.ExecuteQuery(AddCategoryName, db_connection, function() {
 			GetInventoryData(-1,-1,function(responseValues) {
 				res.render('inventory', responseValues);
 			});
 		});
-	} else if(AddProductName != undefined) {
+	} else if(AddProductName !== undefined) {
 		AddProduct.ExecuteQuery(req.body, db_connection, function() {
 			GetInventoryData(-1,-1,function(responseValues) {
 				res.render('inventory', responseValues);
 			});
 		});
-	} else if(EditProductID != undefined) {
-		GetInventoryData(EditProductID,-1,function(responseValues) {
+	} else if(EditProductID !== undefined) {
+		var editProdID = -1;
+		if (/^\d+$/.test(EditProductID)) {
+			editProdID = parseInt(EditProductID);
+		}
+		GetInventoryData(editProdID,-1,function(responseValues) {
 			res.render('inventory', responseValues);
 		});
-	} else if(SaveProductID != undefined) {
+	} else if(SaveProductID !== undefined) {
 		UpdateProduct.ExecuteQuery(req.body, db_connection, function() {
 			GetInventoryData(-1,-1,function(responseValues) {
 				res.render('inventory', responseValues);
 			});
 		});
-	} else if(EditDressingID != undefined) {
-		GetInventoryData(-1,EditDressingID,function(responseValues) {
+	} else if(EditDressingID !== undefined) {
+		var editDressID = -1;
+		if (/^\d+$/.test(EditDressingID)) {
+			editDressID = parseInt(EditDressingID);
+		}
+		GetInventoryData(-1,editDressID,function(responseValues) {
 			res.render('inventory', responseValues);
 		});
-	} else if(SaveDressingID != undefined) {
+	} else if(SaveDressingID !== undefined) {
 		UpdateDressingPad.ExecuteQuery(req.body, db_connection, function() {
 			GetInventoryData(-1,-1,function(responseValues) {
 				res.render('inventory', responseValues);
 			});
 		});
-	} else if(ProductToDiscontinue != undefined) {
+	} else if(ProductToDiscontinue !== undefined) {
 		AddDiscontinuedProduct.ExecuteQuery(ProductToDiscontinue, db_connection, function() {
 			GetInventoryData(-1,-1,function(responseValues) {
 				res.render('inventory', responseValues);
 			});
 		});
-	} else if(AvailableProduct != undefined) {
+	} else if(AvailableProduct !== undefined) {
 		RemoveDiscontinuedProduct.ExecuteQuery(AvailableProduct, db_connection, function() {
 			GetInventoryData(-1,-1,function(responseValues) {
 				res.render('inventory', responseValues);
