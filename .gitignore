@@ -1,3 +1,6 @@
 node_modules/
 *.zip
 ChatGPT/
+PrinterManager/.vs/
+PrinterManager/bin/
+PrinterManager/obj/
