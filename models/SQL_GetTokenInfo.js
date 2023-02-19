@@ -7,9 +7,9 @@ function ExecuteQuery(MaxCount, con, callback) {
   var sql_MaxMaleCount = "SELECT max(TokenNumber) AS \"MaleMax\" FROM patienttokennumbers WHERE TokenType = 'Male';";
   var sql_MaxFemaleCount = "SELECT max(TokenNumber) AS \"FemaleMax\" FROM patienttokennumbers WHERE TokenType = 'Female';";
   var sql_MaxChildCount = "SELECT max(TokenNumber) AS \"ChildMax\" FROM patienttokennumbers WHERE TokenType = 'Child';";
-  var sql_MaleDetails = "SELECT TokenNumber,PatientName from patienttokennumbers WHERE TokenType = 'Male';";
-  var sql_FemaleDetails = "SELECT TokenNumber,PatientName from patienttokennumbers WHERE TokenType = 'Female';";
-  var sql_ChildDetails = "SELECT TokenNumber,PatientName from patienttokennumbers WHERE TokenType = 'Child';";
+  var sql_MaleDetails = "SELECT TokenID, TokenNumber, PatientID, PatientName FROM patienttokennumbers WHERE TokenType = 'Male';";
+  var sql_FemaleDetails = "SELECT TokenID, TokenNumber, PatientID, PatientName FROM patienttokennumbers WHERE TokenType = 'Female';";
+  var sql_ChildDetails = "SELECT TokenID, TokenNumber, PatientID, PatientName FROM patienttokennumbers WHERE TokenType = 'Child';";
   con.query(sql_MaxMaleCount, function (err, result) {
     if (err) throw err;
     if(result[0].MaleMax !== null) {
