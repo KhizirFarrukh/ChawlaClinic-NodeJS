@@ -1,4 +1,4 @@
-function ExecuteQuery(searchOption, searchKeyword, con, callback) {
+function ExecuteQuery(searchOption, searchKeyword, searchMode, con, callback) {
     var sql = "SELECT * FROM patientdetails WHERE ";
     if(searchOption === "CaseNo") {
         searchKeyword = searchKeyword.toLowerCase();
@@ -10,6 +10,9 @@ function ExecuteQuery(searchOption, searchKeyword, con, callback) {
         sql += "LOWER(PatientName) LIKE '%" + searchKeyword + "%'";
     } else if(searchOption === "PatientID") {
         sql += "PatientID = " + searchKeyword;
+    }
+    if(searchMode === "token") {
+        sql += " AND PatientID NOT IN (SELECT PatientID FROM patienttokennumbers WHERE PatientID IS NOT NULL)"
     }
     sql += " ORDER BY FirstVisit DESC LIMIT 10;";
     console.log(sql)
