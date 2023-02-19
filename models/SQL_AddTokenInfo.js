@@ -10,17 +10,18 @@ function ExecuteQuery(TokenPatientID, TokenName, TokenType, TokenDateTime, GetTo
       console.log(sql_Record);
       con.query(sql_Record, function (err, result) {
         if (err) throw err;
+        const TokenID = result.insertId;
         var sql_Logs = "INSERT INTO patienttokenlogs(`TokenNumber`, `TokenType`, `PatientID`, `PatientName`, `TokenDateTime`) ";
         sql_Logs += "VALUES(" + NewTokenNumber + ",'" + TokenType + "'," + TokenPatientID + ",'" + TokenName + "','" + TokenDateTime + "');";
         con.query(sql_Logs, function (err) {
           if (err) throw err;
-          callback(NewTokenNumber, TokenType, undefined);
+          callback(NewTokenNumber, TokenType, undefined, TokenID);
         });
       });
     });
   }
   else {
-    SearchPatient.ExecuteQuery("PatientID",TokenPatientID,con,function(patientDetails) {
+    SearchPatient.ExecuteQuery("PatientID",TokenPatientID,"token",con,function(patientDetails) {
       TokenName = patientDetails[0].PatientName;
       const PatientAge = patientDetails[0].Age;
       const PatientGender = patientDetails[0].Gender;
@@ -42,11 +43,12 @@ function ExecuteQuery(TokenPatientID, TokenName, TokenType, TokenDateTime, GetTo
         console.log(sql_Record);
         con.query(sql_Record, function (err, result) {
           if (err) throw err;
+          const TokenID = result.insertId;
           var sql_Logs = "INSERT INTO patienttokenlogs(`TokenNumber`, `TokenType`, `PatientID`, `PatientName`, `TokenDateTime`) ";
           sql_Logs += "VALUES(" + NewTokenNumber + ",'" + TokenType + "'," + TokenPatientID + ",'" + TokenName + "','" + TokenDateTime + "');";
           con.query(sql_Logs, function (err) {
             if (err) throw err;
-            callback(NewTokenNumber, TokenType, TokenPatientID);
+            callback(NewTokenNumber, TokenType, TokenPatientID, TokenID);
           });
         });
       });
