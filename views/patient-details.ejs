@@ -59,13 +59,11 @@
 											Math.trunc(PatientDetails.Age))*12) %> months
 								</td>
 								<td colspan="1"><strong>Gender : </strong>
-									<% if(PatientDetails.Gender=="M" ) { %>
+									<% if(PatientDetails.Gender === "M" ) { %>
 										Male
-									<% } else if(PatientDetails.Gender=="F" ) { %>
+									<% } else if(PatientDetails.Gender === "F" ) { %>
 										Female
-									<% } //else if(PatientDetails.Gender=="O" ) { %>
-										<!-- Other -->
-									<% //} %>
+									<% } %>
 								</td>
 								<td colspan="3"><strong>Guardian's Name : </strong>
 									<%= PatientDetails.GuardianName %>
@@ -344,7 +342,7 @@
 									<td><%= PaymentDetails[i].OintmentCharges %></td>
 									<td><%= PaymentDetails[i].ProductCharges %></td>
 									<td><%= PaymentDetails[i].TotalAmount %></td>
-									<td><%= PaymentDetails[i].Discount %></td>
+									<td><%= PaymentDetails[i].Discount %><% if(PaymentDetails[i].DiscountOption !== null) { %> (<%= PaymentDetails[i].DiscountOption %>)<% } %></td>
 									<td><%= PaymentDetails[i].AmountPaid %></td>
 									<!-- <td>
 										<button type="submit" class="btn nav-link" onclick="DeletePayment();" name="RemovePaymentRecord" value="<%= //PaymentDetails[i].PaymentID %>" data-toggle="tooltip" data-placement="top" title="Delete Payment" style="color:red;">
