@@ -148,12 +148,29 @@
 								<option value="3/4">3/4</option>
 							</select>
 						</div>
+						<div class="input-group mb-3">
+							<span class="input-group-text" id="custompricelabel" style="display: none;">Custom Price</span>
+							<input type="number" class="form-control" id="customprice" name="customprice" style="max-width: 100px;display: none;">
+						</div>
 						<button type="submit" name="AddTempDressingRecord" value="True" class="mt-10 btn btn-primary btn-lg">
 							<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
 								<path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
 							</svg>Add Dressing Record (to hold)
 						</button>
 					</form>
+					<br>
+					<button class="btn btn-primary btn-sm" id="showCustomPriceBtn">Use Custom Price</button>
+					<script>
+						const _button = document.getElementById('showCustomPriceBtn');
+						const _label = document.getElementById('custompricelabel');
+						const _input = document.getElementById('customprice');
+
+						_button.addEventListener('click', function() {
+							_label.style.display = 'block';
+							_input.style.display = 'block';
+							_button.style.display = 'none';
+						});
+					</script>
 				</div>
 			<% } %> 
 			<div id="AddProductsRecord" style="width: 60%;">
