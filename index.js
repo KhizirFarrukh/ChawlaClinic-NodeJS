@@ -117,7 +117,7 @@ function BackupDatabase(callback) {
 	const db_backup_filename = "db_backup_" + current_timestamp + ".sql";
 	const db_backup_filepath = db_backup_folder + "\\" + db_backup_filename;
 
-	const mkdir_shell_cmd = "mkdir " + db_backup_folder + "/D";
+	const mkdir_shell_cmd = "mkdir " + db_backup_folder;
 	const db_backup_shell_cmd = "mysqldump -u " + db_username + " -p" + db_pass + " " + db_name + " --routines --triggers > " + db_backup_filepath;
 
 	console.log(db_backup_shell_cmd);
@@ -131,9 +131,10 @@ function BackupDatabase(callback) {
 			if (error) {
 				console.error("mysqldump exec error: " + error);
 				callback(false);
+			} else {
+				console.log("Backup successful");
+				callback(db_backup_filepath);
 			}
-			console.log("Backup successful");
-			callback(db_backup_filepath);
 		});
 	});
 
@@ -401,6 +402,14 @@ app.get('/patient-details/check-payment', (req, res) => {
 	}
 });
 
+app.post('/patient-details/check-payment', (req, res) => {
+	console.log(req.body);
+	const BackupDBPass = req.body.BackupDBPassInput;
+	if(BackupDBPass !== undefined) {
+		DBBackupHandler(BackupDBPass, req, res);
+	}
+});
+
 app.get('/patient-details/payment-records', (req, res) => {
 	const PatientID = req.query.id;
 	PatientPaymentRecordGet(PatientID, "Patient", false, function(PaymentRecords) {
@@ -411,6 +420,7 @@ app.get('/patient-details/payment-records', (req, res) => {
 app.post('/patient-details/payment-records', (req, res) => {
 	console.log(req.body);
 	const PatientID = req.query.id;
+	const BackupDBPass = req.body.BackupDBPassInput;
 	const ReprintPaymentID = req.body.ReprintPayment;
 	if(ReprintPaymentID !== undefined) {
 		GetPaymentSummary.ExecuteQuery(parseInt(ReprintPaymentID), db_connection, function(result) {
@@ -428,6 +438,8 @@ app.post('/patient-details/payment-records', (req, res) => {
 				res.render('print-handler', {printmethod:"printpaymentreceipt", params:"PaymentHashID=" + Payment_HashValue + "&AmountPaid=" + AmountPaid + "&PaymentDate=" + processedPaymentDate, redirectURL});
 			}
 		});
+	} else if(BackupDBPass !== undefined) {
+		DBBackupHandler(BackupDBPass, req, res);
 	} else {
 		PatientPaymentRecordGet(PatientID, "Patient", false, function(PaymentRecords) {
 			res.render('payment-records', { title: "Payment Records | Chawla Clinic", ...PaymentRecords});
@@ -610,6 +622,10 @@ app.get('/account-management', (req, res) => {
 
 app.get('/under-construction', (req, res) => {
 	res.render('underconstruction')
+});
+
+app.post('/under-construction', (req, res) => {
+	res.redirect('/under-construction')
 });
 
 app.use(function (req, res) {
