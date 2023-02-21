@@ -220,27 +220,30 @@ namespace PrintManager
             e.Graphics.DrawString(PaymentDate, font, Brushes.Black, new RectangleF(x, y, MarginWidth, 30));
             y += 20;
 
-            blackPen = new Pen(Color.Black, 2);
-            e.Graphics.DrawLine(blackPen, LeftMargin, y, RightMargin, y);
-            y += 10;
-
-            string textToEncode = printData.PaymentHashID;
-            QRCodeGenerator qrGenerator = new QRCodeGenerator();
-            QRCodeData qrCodeData = qrGenerator.CreateQrCode(textToEncode, QRCodeGenerator.ECCLevel.Q);
-            QRCode qrCode = new QRCode(qrCodeData);
-            Bitmap qrCodeImage = qrCode.GetGraphic(20);
-
-            float QRImageRatio = (float)(RightMargin-90) / qrCodeImage.Width;
-            int newQRImageWidth = (int)(qrCodeImage.Width * QRImageRatio);
-            int newQRImageHeight = (int)(qrCodeImage.Height * QRImageRatio);
-            newImage = new Bitmap(newQRImageWidth, newQRImageHeight);
-            using (Graphics g = Graphics.FromImage(newImage))
+            if(ConfigurationManager.AppSettings["PrintQRCode"] == "true")
             {
-                g.DrawImage(qrCodeImage, 0, 0, newQRImageWidth, newQRImageHeight);
+                blackPen = new Pen(Color.Black, 2);
+                e.Graphics.DrawLine(blackPen, LeftMargin, y, RightMargin, y);
+                y += 10;
+
+                string textToEncode = printData.PaymentHashID;
+                QRCodeGenerator qrGenerator = new QRCodeGenerator();
+                QRCodeData qrCodeData = qrGenerator.CreateQrCode(textToEncode, QRCodeGenerator.ECCLevel.Q);
+                QRCode qrCode = new QRCode(qrCodeData);
+                Bitmap qrCodeImage = qrCode.GetGraphic(20);
+
+                float QRImageRatio = (float)(RightMargin - 90) / qrCodeImage.Width;
+                int newQRImageWidth = (int)(qrCodeImage.Width * QRImageRatio);
+                int newQRImageHeight = (int)(qrCodeImage.Height * QRImageRatio);
+                newImage = new Bitmap(newQRImageWidth, newQRImageHeight);
+                using (Graphics g = Graphics.FromImage(newImage))
+                {
+                    g.DrawImage(qrCodeImage, 0, 0, newQRImageWidth, newQRImageHeight);
+                }
+                x = LeftMargin + ((RightMargin - LeftMargin) - newImage.Width) / 2;
+                e.Graphics.DrawImage(newImage, x, y);
+                y += newQRImageHeight + 10;
             }
-            x = LeftMargin + ((RightMargin - LeftMargin) - newImage.Width) / 2;
-            e.Graphics.DrawImage(newImage, x, y);
-            y += newQRImageHeight + 10;
 
             blackPen = new Pen(Color.Black, 2);
             e.Graphics.DrawLine(blackPen, LeftMargin, y, RightMargin, y);
