@@ -87,7 +87,7 @@ CREATE TABLE `patientdetails` (
   `DiscountMode` varchar(15) COLLATE utf8_bin NOT NULL DEFAULT 'None',
   PRIMARY KEY (`PatientID`),
   CONSTRAINT `AgeLimitCheck` CHECK (`Age` >= 0.0)
-) ENGINE=InnoDB AUTO_INCREMENT=140891 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=140897 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -96,7 +96,7 @@ CREATE TABLE `patientdetails` (
 
 LOCK TABLES `patientdetails` WRITE;
 /*!40000 ALTER TABLE `patientdetails` DISABLE KEYS */;
-INSERT INTO `patientdetails` VALUES (0,'Guest','X','Guest',0,'X','','','','','ACTIVE','1968-01-01',0,'None'),(140870,'22B-000001','B','Khizir Farrukh Chawla',21.917,'M','Sheikh Muhammad Farrukh Chawla','headache part 2','1-C 5/6 Nazimabad No. 1, Karachi','03223131265','ACTIVE','2022-08-25',0,'None'),(140871,'23B-000001','B','Muhammad Ibrahim Farrukh Chawla',8.667,'M','Sheikh Muhammad Farrukh Chawla','hehe','1-C 5/6 Nazimabad No. 1, Karachi','03212937073','ACTIVE','2023-01-08',0,'Zakat'),(140874,'23B-000002','B','test data',11,'F','test','some testing burn disease','','','ACTIVE','2023-01-13',0,'None'),(140876,'23B-005501','B','Muhammad Abdullah Farrukh Chawla',14.25,'M','Sheikh Muhammad Farrukh Chawla','xD','1-C 5/6 Nazimabad No. 1','03001234567','ACTIVE','2023-01-18',0,'None'),(140877,'23B-005502','B','Ifrah Farrukh Chawla',19.167,'F','Sheikh Muhammad Farrukh Chawla','hehe','1-C 5/6 Nazimabad No. 1','03001212345','ACTIVE','2023-01-18',0,'None'),(140878,'23B-001101','B','Huzaifa Farrukh',23.25,'M','Farrukh Chawla','asdfasf','','','ACTIVE','2023-01-18',0,'None'),(140882,'23B-005503','B','asd',2,'M','','','','','ACTIVE','2023-01-19',0,'None'),(140883,'23B-001102','B','test 2',50,'M','','','','','ACTIVE','2023-01-19',0,'None'),(140884,'23B-011102','B','test 3',10,'M','','','','','ACTIVE','2023-01-19',0,'None'),(140885,'23B-021102','B','test 4',18,'M','','','','','ACTIVE','2023-01-19',0,'None'),(140886,'21B-000001','B','test 5',25,'M','','','','','ACTIVE','2021-01-01',0,'None'),(140887,'21B-000002','B','test 6',32,'M','','','','','ACTIVE','2021-01-01',0,'None'),(140888,'23B-021103','B','some random xD',99.917,'M','almost to a century xDDDD','party edited','','','ACTIVE','2023-01-30',0,'None'),(140889,'23B-021104','B','new',0,'M','','','','','ACTIVE','2023-02-03',0,'None'),(140890,'23B-021105','B','the test xDD',15,'F','','chicken burger addictionssssss','Urdu Bazar, Nazimabad No. 1, Karachi Central, Sindh, Pakistan, Asia, Earth, Milky Way, The Universe','03001122335','ACTIVE','2023-02-16',0,'None');
+INSERT INTO `patientdetails` VALUES (0,'Guest','X','Guest',0,'X','','','','','ACTIVE','1968-01-01',0,'None'),(140870,'22B-000001','B','Khizir Farrukh Chawla',21.917,'M','Sheikh Muhammad Farrukh Chawla','headache part 2','1-C 5/6 Nazimabad No. 1, Karachi','03223131265','ACTIVE','2022-08-25',0,'None'),(140871,'23B-000001','B','Muhammad Ibrahim Farrukh Chawla',8.667,'M','Sheikh Muhammad Farrukh Chawla','hehe','1-C 5/6 Nazimabad No. 1, Karachi','03212937073','ACTIVE','2023-01-08',0,'Zakat'),(140874,'23B-000002','B','test data',11,'F','test','some testing burn disease','','','ACTIVE','2023-01-13',0,'None'),(140876,'23B-005501','B','Muhammad Abdullah Farrukh Chawla',14.25,'M','Sheikh Muhammad Farrukh Chawla','xD','1-C 5/6 Nazimabad No. 1','03001234567','ACTIVE','2023-01-18',0,'None'),(140877,'23B-005502','B','Ifrah Farrukh Chawla',19.167,'F','Sheikh Muhammad Farrukh Chawla','hehe','1-C 5/6 Nazimabad No. 1','03001212345','ACTIVE','2023-01-18',0,'None'),(140878,'23B-001101','B','Huzaifa Farrukh',23.25,'M','Farrukh Chawla','asdfasf','','','ACTIVE','2023-01-18',0,'None'),(140882,'23B-005503','B','asd',2,'M','','','','','ACTIVE','2023-01-19',0,'None'),(140883,'23B-001102','B','test 2',50,'M','','','','','ACTIVE','2023-01-19',0,'None'),(140884,'23B-011102','B','test 3',10,'M','','','','','ACTIVE','2023-01-19',0,'None'),(140885,'23B-021102','B','test 4',18,'M','','','','','ACTIVE','2023-01-19',0,'None'),(140886,'21B-000001','B','test 5',25,'M','','','','','ACTIVE','2021-01-01',0,'None'),(140887,'21B-000002','B','test 6',32,'M','','','','','ACTIVE','2021-01-01',0,'None'),(140888,'23B-021103','B','some random xD',99.917,'M','almost to a century xDDDD','party edited','','','ACTIVE','2023-01-30',0,'None'),(140889,'23B-021104','B','new',0,'M','','','','','ACTIVE','2023-02-03',0,'None'),(140890,'23B-021105','B','the test xDD',15,'F','','chicken burger addictionssssss','Urdu Bazar, Nazimabad No. 1, Karachi Central, Sindh, Pakistan, Asia, Earth, Milky Way, The Universe','03001122335','ACTIVE','2023-02-16',0,'None'),(140891,'23B-021106','B','emergency token',4,'M','father name','','','','ACTIVE','2023-02-19',0,'None'),(140892,'23B-021107','B','Umer Shaheer Ul Haq Chawla',7.333,'M','Shaheer Ul Haq Chawla','hehehehehehehe xDDDDDDDDDDDD','1-C 5/6 Nazimabad No. 1, Karachi','03001122339','ACTIVE','2023-02-19',0,'None'),(140893,'23B-021108','B','new testing patient',12,'M','asdasdad a','qae ef fe f af','r5423515f43v 3453454353 4- fgeg','03000000000','ACTIVE','2023-02-21',0,'None'),(140894,'23B-021109','B','hehe test 2',11.917,'F','father name','','','','ACTIVE','2023-02-21',0,'None'),(140895,'23B-021110','B','test 3331263165ads',11.917,'M','dstfsdf fa f','','','','ACTIVE','2023-02-21',0,'None'),(140896,'23B-021111','B','test #55132321321',12,'F','saSAsASasdsad','','','','ACTIVE','2023-02-21',0,'None');
 /*!40000 ALTER TABLE `patientdetails` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -116,7 +116,7 @@ CREATE TABLE `patientdressingrecord` (
   PRIMARY KEY (`DressingID`),
   KEY `PaymentID` (`PaymentID`),
   CONSTRAINT `patientdressingrecord_ibfk_2` FOREIGN KEY (`PaymentID`) REFERENCES `patientpaymentrecord` (`PaymentID`)
-) ENGINE=InnoDB AUTO_INCREMENT=1278 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=1283 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -125,7 +125,7 @@ CREATE TABLE `patientdressingrecord` (
 
 LOCK TABLES `patientdressingrecord` WRITE;
 /*!40000 ALTER TABLE `patientdressingrecord` DISABLE KEYS */;
-INSERT INTO `patientdressingrecord` VALUES (1250,1309,1.25,1000,'2023-01-05'),(1251,1310,1,800,'2023-01-05'),(1252,1314,2.5,2000,'2023-01-08'),(1253,1319,2.25,1800,'2023-01-10'),(1254,1321,2.5,2000,'2023-01-10'),(1255,1322,2.5,2000,'2023-01-09'),(1256,1325,2.5,2000,'2023-01-11'),(1257,1327,2.5,2000,'2023-01-12'),(1259,1329,2.5,2000,'2023-01-13'),(1260,1330,2.25,1800,'2023-01-11'),(1261,1331,2.75,2200,'2023-01-11'),(1262,1332,1,800,'2023-01-13'),(1263,1336,1.5,1200,'2023-01-27'),(1264,1336,1.25,1000,'2023-01-28'),(1265,1336,1.25,1000,'2023-01-29'),(1266,1336,1.25,1000,'2023-01-30'),(1267,1338,1,800,'2023-01-31'),(1268,1339,4.75,3800,'2023-01-30'),(1269,1346,0.75,700,'2023-02-01'),(1270,1349,0.75,700,'2023-02-02'),(1271,1350,0.5,600,'2023-02-03'),(1272,1359,5,4000,'2023-02-03'),(1273,1360,3.75,3000,'2023-02-03'),(1274,1361,2.5,2000,'2023-02-12'),(1275,1364,4.75,3800,'2023-02-16'),(1276,1365,4.5,3600,'2023-02-17'),(1277,1365,4.5,3600,'2023-02-18');
+INSERT INTO `patientdressingrecord` VALUES (1250,1309,1.25,1000,'2023-01-05'),(1251,1310,1,800,'2023-01-05'),(1252,1314,2.5,2000,'2023-01-08'),(1253,1319,2.25,1800,'2023-01-10'),(1254,1321,2.5,2000,'2023-01-10'),(1255,1322,2.5,2000,'2023-01-09'),(1256,1325,2.5,2000,'2023-01-11'),(1257,1327,2.5,2000,'2023-01-12'),(1259,1329,2.5,2000,'2023-01-13'),(1260,1330,2.25,1800,'2023-01-11'),(1261,1331,2.75,2200,'2023-01-11'),(1262,1332,1,800,'2023-01-13'),(1263,1336,1.5,1200,'2023-01-27'),(1264,1336,1.25,1000,'2023-01-28'),(1265,1336,1.25,1000,'2023-01-29'),(1266,1336,1.25,1000,'2023-01-30'),(1267,1338,1,800,'2023-01-31'),(1268,1339,4.75,3800,'2023-01-30'),(1269,1346,0.75,700,'2023-02-01'),(1270,1349,0.75,700,'2023-02-02'),(1271,1350,0.5,600,'2023-02-03'),(1272,1359,5,4000,'2023-02-03'),(1273,1360,3.75,3000,'2023-02-03'),(1274,1361,2.5,2000,'2023-02-12'),(1275,1364,4.75,3800,'2023-02-16'),(1276,1365,4.5,3600,'2023-02-17'),(1277,1365,4.5,3600,'2023-02-18'),(1278,1366,2.25,1800,'2023-02-20'),(1279,1367,1.75,1750,'2023-02-21'),(1280,1369,1.5,1200,'2023-02-22'),(1281,1369,1.5,1200,'2023-02-23'),(1282,1369,1.5,1000,'2023-02-24');
 /*!40000 ALTER TABLE `patientdressingrecord` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -144,7 +144,7 @@ CREATE TABLE `patientdressingtemphold` (
   `TotalAmount` int(11) NOT NULL,
   PRIMARY KEY (`TempID`),
   CONSTRAINT `patientdressingtemphold_ibfk_1` FOREIGN KEY (`PatientID`) REFERENCES `patientdetails` (`PatientID`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -237,7 +237,7 @@ CREATE TABLE `patientpaymentrecord` (
   PRIMARY KEY (`PaymentID`),
   KEY `PatientID` (`PatientID`),
   CONSTRAINT `patientpaymentrecord_ibfk_1` FOREIGN KEY (`PatientID`) REFERENCES `patientdetails` (`PatientID`)
-) ENGINE=InnoDB AUTO_INCREMENT=1366 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=1371 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -246,7 +246,7 @@ CREATE TABLE `patientpaymentrecord` (
 
 LOCK TABLES `patientpaymentrecord` WRITE;
 /*!40000 ALTER TABLE `patientpaymentrecord` DISABLE KEYS */;
-INSERT INTO `patientpaymentrecord` VALUES (1308,140870,1900,1900,0,'2023-01-01'),(1309,140870,2300,2000,0,'2023-01-05'),(1310,140870,800,1000,0,'2023-01-05'),(1311,140870,700,700,0,'2023-01-06'),(1312,140870,0,100,0,'2023-01-07'),(1313,140870,0,1000,0,'2023-01-07'),(1314,140871,2000,2000,0,'2023-01-08'),(1319,140870,5550,4550,0,'2023-01-10'),(1321,140871,2000,2000,0,'2023-01-10'),(1322,140871,2000,1500,500,'2023-01-09'),(1325,140871,2000,1500,500,'2023-01-10'),(1327,140871,2000,1500,500,'2023-01-10'),(1329,140871,2000,1500,500,'2023-01-10'),(1330,140870,1800,1800,0,'2023-01-10'),(1331,140870,6650,7000,0,'2023-01-11'),(1332,140870,800,1000,0,'2023-01-13'),(1333,0,1810,1810,0,'2023-01-18'),(1334,0,430,430,0,'2023-01-18'),(1335,140870,0,-550,0,'2023-01-19'),(1336,140870,7120,7200,0,'2023-01-27'),(1338,140870,800,720,0,'2023-01-31'),(1339,140888,4400,4000,0,'2023-01-30'),(1340,140888,0,400,0,'2023-01-31'),(1343,140870,600,600,0,'2023-01-31'),(1344,140870,1200,1200,0,'2023-01-30'),(1345,140870,1100,1100,0,'2023-01-29'),(1346,140870,700,700,0,'2023-02-01'),(1348,140870,600,600,0,'2023-02-02'),(1349,140870,700,700,0,'2023-02-02'),(1350,140870,600,600,0,'2023-02-03'),(1355,140870,430,430,0,'2023-02-03'),(1357,140870,600,600,0,'2023-02-03'),(1358,140870,850,850,0,'2023-02-03'),(1359,140889,4000,4000,0,'2023-02-03'),(1360,140888,7610,7700,0,'2023-02-03'),(1361,140870,2000,2000,0,'2023-02-12'),(1362,0,1100,1100,0,'2023-02-16'),(1363,140890,0,25000,0,'2023-02-16'),(1364,140890,3800,0,0,'2023-02-16'),(1365,140890,8950,1050,0,'2023-02-16');
+INSERT INTO `patientpaymentrecord` VALUES (1308,140870,1900,1900,0,'2023-01-01'),(1309,140870,2300,2000,0,'2023-01-05'),(1310,140870,800,1000,0,'2023-01-05'),(1311,140870,700,700,0,'2023-01-06'),(1312,140870,0,100,0,'2023-01-07'),(1313,140870,0,1000,0,'2023-01-07'),(1314,140871,2000,2000,0,'2023-01-08'),(1319,140870,5550,4550,0,'2023-01-10'),(1321,140871,2000,2000,0,'2023-01-10'),(1322,140871,2000,1500,500,'2023-01-09'),(1325,140871,2000,1500,500,'2023-01-10'),(1327,140871,2000,1500,500,'2023-01-10'),(1329,140871,2000,1500,500,'2023-01-10'),(1330,140870,1800,1800,0,'2023-01-10'),(1331,140870,6650,7000,0,'2023-01-11'),(1332,140870,800,1000,0,'2023-01-13'),(1333,0,1810,1810,0,'2023-01-18'),(1334,0,430,430,0,'2023-01-18'),(1335,140870,0,-550,0,'2023-01-19'),(1336,140870,7120,7200,0,'2023-01-27'),(1338,140870,800,720,0,'2023-01-31'),(1339,140888,4400,4000,0,'2023-01-30'),(1340,140888,0,400,0,'2023-01-31'),(1343,140870,600,600,0,'2023-01-31'),(1344,140870,1200,1200,0,'2023-01-30'),(1345,140870,1100,1100,0,'2023-01-29'),(1346,140870,700,700,0,'2023-02-01'),(1348,140870,600,600,0,'2023-02-02'),(1349,140870,700,700,0,'2023-02-02'),(1350,140870,600,600,0,'2023-02-03'),(1355,140870,430,430,0,'2023-02-03'),(1357,140870,600,600,0,'2023-02-03'),(1358,140870,850,850,0,'2023-02-03'),(1359,140889,4000,4000,0,'2023-02-03'),(1360,140888,7610,7700,0,'2023-02-03'),(1361,140870,2000,2000,0,'2023-02-12'),(1362,0,1100,1100,0,'2023-02-16'),(1363,140890,0,25000,0,'2023-02-16'),(1364,140890,3800,0,0,'2023-02-16'),(1365,140890,8950,1050,0,'2023-02-16'),(1366,140870,1800,1800,0,'2023-02-21'),(1367,140870,1750,1750,0,'2023-02-21'),(1368,0,1300,1300,0,'2023-02-21'),(1369,140870,7600,8000,0,'2023-02-21'),(1370,0,1680,1680,0,'2023-02-21');
 /*!40000 ALTER TABLE `patientpaymentrecord` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -271,7 +271,7 @@ CREATE TABLE `patientpaymentsidentifiers` (
 
 LOCK TABLES `patientpaymentsidentifiers` WRITE;
 /*!40000 ALTER TABLE `patientpaymentsidentifiers` DISABLE KEYS */;
-INSERT INTO `patientpaymentsidentifiers` VALUES (1358,'11qs6q'),(1359,'11r9ns'),(1360,'11svht'),(1361,'11tdgv'),(1362,'11u5dg'),(1364,'11w5ra'),(1365,'11x1lc');
+INSERT INTO `patientpaymentsidentifiers` VALUES (1358,'11qs6q'),(1359,'11r9ns'),(1360,'11svht'),(1361,'11tdgv'),(1362,'11u5dg'),(1364,'11w5ra'),(1365,'11x1lc'),(1366,'11y6cv'),(1367,'11zctr'),(1368,'120vf9'),(1369,'121zud'),(1370,'1226qr');
 /*!40000 ALTER TABLE `patientpaymentsidentifiers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -316,7 +316,7 @@ CREATE TABLE `patientproductspurchased` (
   PRIMARY KEY (`PurchaseID`),
   KEY `PaymentID` (`PaymentID`),
   CONSTRAINT `patientproductspurchased_ibfk_2` FOREIGN KEY (`PaymentID`) REFERENCES `patientpaymentrecord` (`PaymentID`)
-) ENGINE=InnoDB AUTO_INCREMENT=64 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=67 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -325,7 +325,7 @@ CREATE TABLE `patientproductspurchased` (
 
 LOCK TABLES `patientproductspurchased` WRITE;
 /*!40000 ALTER TABLE `patientproductspurchased` DISABLE KEYS */;
-INSERT INTO `patientproductspurchased` VALUES (40,1308,1900),(41,1309,1300),(42,1311,700),(47,1319,3750),(49,1331,4450),(50,1333,1810),(51,1334,430),(52,1336,2920),(53,1339,600),(54,1343,600),(55,1344,1200),(56,1345,1100),(57,1348,600),(58,1355,430),(59,1357,600),(60,1358,850),(61,1360,4610),(62,1362,1100),(63,1365,1750);
+INSERT INTO `patientproductspurchased` VALUES (40,1308,1900),(41,1309,1300),(42,1311,700),(47,1319,3750),(49,1331,4450),(50,1333,1810),(51,1334,430),(52,1336,2920),(53,1339,600),(54,1343,600),(55,1344,1200),(56,1345,1100),(57,1348,600),(58,1355,430),(59,1357,600),(60,1358,850),(61,1360,4610),(62,1362,1100),(63,1365,1750),(64,1368,1300),(65,1369,4200),(66,1370,1680);
 /*!40000 ALTER TABLE `patientproductspurchased` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -354,7 +354,7 @@ CREATE TABLE `patientproductspurchaseditems` (
 
 LOCK TABLES `patientproductspurchaseditems` WRITE;
 /*!40000 ALTER TABLE `patientproductspurchaseditems` DISABLE KEYS */;
-INSERT INTO `patientproductspurchaseditems` VALUES (40,8,2,1200),(40,10,1,700),(41,8,1,600),(41,10,1,700),(42,39,2,700),(47,8,1,600),(47,10,3,2100),(47,39,3,1050),(49,8,2,1200),(49,45,3,750),(49,48,1,600),(49,59,2,1900),(50,8,1,600),(50,39,1,350),(50,55,2,860),(51,40,1,430),(52,8,2,1200),(52,40,4,1720),(53,8,1,600),(54,8,1,600),(55,8,2,1200),(56,8,1,600),(56,45,2,500),(57,8,1,600),(58,40,1,430),(59,8,1,600),(60,66,1,850),(61,10,3,2100),(61,40,1,430),(61,56,2,1500),(61,60,1,580),(62,58,2,1100),(63,10,1,700),(63,45,1,250),(63,64,1,800);
+INSERT INTO `patientproductspurchaseditems` VALUES (40,8,2,1200),(40,10,1,700),(41,8,1,600),(41,10,1,700),(42,39,2,700),(47,8,1,600),(47,10,3,2100),(47,39,3,1050),(49,8,2,1200),(49,45,3,750),(49,48,1,600),(49,59,2,1900),(50,8,1,600),(50,39,1,350),(50,55,2,860),(51,40,1,430),(52,8,2,1200),(52,40,4,1720),(53,8,1,600),(54,8,1,600),(55,8,2,1200),(56,8,1,600),(56,45,2,500),(57,8,1,600),(58,40,1,430),(59,8,1,600),(60,66,1,850),(61,10,3,2100),(61,40,1,430),(61,56,2,1500),(61,60,1,580),(62,58,2,1100),(63,10,1,700),(63,45,1,250),(63,64,1,800),(64,9,2,1300),(65,10,2,1400),(65,39,2,700),(65,62,1,2100),(66,58,2,1100),(66,60,1,580);
 /*!40000 ALTER TABLE `patientproductspurchaseditems` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -382,7 +382,7 @@ CREATE TABLE `patienttokenlogs` (
 
 LOCK TABLES `patienttokenlogs` WRITE;
 /*!40000 ALTER TABLE `patienttokenlogs` DISABLE KEYS */;
-INSERT INTO `patienttokenlogs` VALUES (NULL,1,'asd','Male','2022-08-20 16:32:46'),(NULL,1,'srytuj','Female','2022-08-20 16:33:15'),(NULL,1,'asd','Female','2022-08-20 16:35:30'),(NULL,1,'asdasdasdasd sad asd as fasf sad asd','Male','2022-08-20 16:37:13'),(NULL,2,'brorojasoda ospidj','Male','2022-08-20 16:37:56'),(NULL,1,'asd','Male','2022-08-21 10:58:04'),(NULL,1,'fdsfsddsf','Female','2022-08-21 10:58:55'),(NULL,2,'asdasd','Male','2022-08-21 11:00:09'),(NULL,1,'sadasdasd','Child','2022-08-21 11:00:54'),(NULL,3,'asdasd','Male','2022-08-21 11:02:59'),(NULL,4,'sadasd','Male','2022-08-21 11:03:29'),(NULL,5,'asdasdasdasdasd','Male','2022-08-21 11:05:56'),(NULL,6,'asdasd','Male','2022-08-21 11:08:19'),(NULL,7,'sadasdasdasd','Male','2022-08-21 11:08:39'),(NULL,2,'sadasd','Female','2022-08-21 11:09:40'),(NULL,2,'gfsdfhsfghrs','Child','2022-08-21 11:16:32'),(NULL,3,'asdasd','Child','2022-08-21 11:17:45'),(NULL,1,'asd','Male','2023-02-03 15:10:52'),(NULL,1,'asdqw','Child','2023-02-03 15:10:56'),(NULL,2,'asdasd','Male','2023-02-03 15:10:59'),(NULL,1,'aadfwe','Female','2023-02-03 15:11:03'),(NULL,2,'xzc awfdwq','Female','2023-02-03 15:11:07'),(NULL,2,'asd 32 fsd fa','Child','2023-02-03 15:11:10'),(NULL,3,'asdasdawdasd as dsa dasd ','Male','2023-02-04 10:18:22'),(NULL,4,'d asdasd wdwd ad asd ad wdqw ','Male','2023-02-04 10:18:30'),(NULL,3,' dad F gergsdf gsd wesf sdf sDF sdf f','Female','2023-02-04 10:18:39'),(NULL,3,' sfd fwefsd ff wef dsfaf arfefq','Child','2023-02-04 10:18:45'),(140877,4,'Ifrah Farrukh Chawla','Female','2023-02-04 10:39:24'),(140877,5,'Ifrah Farrukh Chawla','Female','2023-02-04 10:39:30'),(140889,4,'new','Child','2023-02-04 10:43:22'),(140870,5,'Khizir Farrukh Chawla','Male','2023-02-04 11:45:37'),(140878,6,'Huzaifa Farrukh','Male','2023-02-04 11:47:10'),(NULL,5,'sad','Child','2023-02-04 11:49:09'),(NULL,7,'asdad asda sdas','Male','2023-02-04 11:49:25'),(NULL,5,'as dad asd  asdasd aa','Female','2023-02-04 11:49:37'),(140883,8,'test 2','Male','2023-02-04 11:58:22'),(NULL,9,'aasdasdass new','Male','2023-02-04 11:59:12'),(NULL,10,'new','Male','2023-02-04 12:00:32'),(NULL,6,'vbnm,','Child','2023-02-05 18:53:14'),(140876,11,'Muhammad Abdullah Farrukh Chawla','Male','2023-02-05 18:53:35'),(NULL,12,'asd','Male','2023-02-14 19:56:47'),(NULL,7,'chicken burger','Child','2023-02-14 19:57:13'),(NULL,6,'wsefsdf','Female','2023-02-14 19:58:16'),(NULL,13,'asdasdasdasd   asas','Male','2023-02-14 20:00:30'),(140874,8,'test data','Child','2023-02-14 20:00:52'),(140888,14,'some random xD','Male','2023-02-14 20:16:47'),(140882,8,'asd','Child','2023-02-15 18:04:06'),(140876,1,'Muhammad Abdullah Farrukh Chawla','Male','2023-02-16 15:25:56'),(NULL,1,'e vwserg','Female','2023-02-16 15:26:40');
+INSERT INTO `patienttokenlogs` VALUES (NULL,1,'asd','Male','2022-08-20 16:32:46'),(NULL,1,'srytuj','Female','2022-08-20 16:33:15'),(NULL,1,'asd','Female','2022-08-20 16:35:30'),(NULL,1,'asdasdasdasd sad asd as fasf sad asd','Male','2022-08-20 16:37:13'),(NULL,2,'brorojasoda ospidj','Male','2022-08-20 16:37:56'),(NULL,1,'asd','Male','2022-08-21 10:58:04'),(NULL,1,'fdsfsddsf','Female','2022-08-21 10:58:55'),(NULL,2,'asdasd','Male','2022-08-21 11:00:09'),(NULL,1,'sadasdasd','Child','2022-08-21 11:00:54'),(NULL,3,'asdasd','Male','2022-08-21 11:02:59'),(NULL,4,'sadasd','Male','2022-08-21 11:03:29'),(NULL,5,'asdasdasdasdasd','Male','2022-08-21 11:05:56'),(NULL,6,'asdasd','Male','2022-08-21 11:08:19'),(NULL,7,'sadasdasdasd','Male','2022-08-21 11:08:39'),(NULL,2,'sadasd','Female','2022-08-21 11:09:40'),(NULL,2,'gfsdfhsfghrs','Child','2022-08-21 11:16:32'),(NULL,3,'asdasd','Child','2022-08-21 11:17:45'),(NULL,1,'asd','Male','2023-02-03 15:10:52'),(NULL,1,'asdqw','Child','2023-02-03 15:10:56'),(NULL,2,'asdasd','Male','2023-02-03 15:10:59'),(NULL,1,'aadfwe','Female','2023-02-03 15:11:03'),(NULL,2,'xzc awfdwq','Female','2023-02-03 15:11:07'),(NULL,2,'asd 32 fsd fa','Child','2023-02-03 15:11:10'),(NULL,3,'asdasdawdasd as dsa dasd ','Male','2023-02-04 10:18:22'),(NULL,4,'d asdasd wdwd ad asd ad wdqw ','Male','2023-02-04 10:18:30'),(NULL,3,' dad F gergsdf gsd wesf sdf sDF sdf f','Female','2023-02-04 10:18:39'),(NULL,3,' sfd fwefsd ff wef dsfaf arfefq','Child','2023-02-04 10:18:45'),(140877,4,'Ifrah Farrukh Chawla','Female','2023-02-04 10:39:24'),(140877,5,'Ifrah Farrukh Chawla','Female','2023-02-04 10:39:30'),(140889,4,'new','Child','2023-02-04 10:43:22'),(140870,5,'Khizir Farrukh Chawla','Male','2023-02-04 11:45:37'),(140878,6,'Huzaifa Farrukh','Male','2023-02-04 11:47:10'),(NULL,5,'sad','Child','2023-02-04 11:49:09'),(NULL,7,'asdad asda sdas','Male','2023-02-04 11:49:25'),(NULL,5,'as dad asd  asdasd aa','Female','2023-02-04 11:49:37'),(140883,8,'test 2','Male','2023-02-04 11:58:22'),(NULL,9,'aasdasdass new','Male','2023-02-04 11:59:12'),(NULL,10,'new','Male','2023-02-04 12:00:32'),(NULL,6,'vbnm,','Child','2023-02-05 18:53:14'),(140876,11,'Muhammad Abdullah Farrukh Chawla','Male','2023-02-05 18:53:35'),(NULL,12,'asd','Male','2023-02-14 19:56:47'),(NULL,7,'chicken burger','Child','2023-02-14 19:57:13'),(NULL,6,'wsefsdf','Female','2023-02-14 19:58:16'),(NULL,13,'asdasdasdasd   asas','Male','2023-02-14 20:00:30'),(140874,8,'test data','Child','2023-02-14 20:00:52'),(140888,14,'some random xD','Male','2023-02-14 20:16:47'),(140882,8,'asd','Child','2023-02-15 18:04:06'),(140876,1,'Muhammad Abdullah Farrukh Chawla','Male','2023-02-16 15:25:56'),(NULL,1,'e vwserg','Female','2023-02-16 15:26:40'),(140891,1,'emergency token','Child','0000-00-00 00:00:00'),(140885,2,'test 4','Male','2023-02-19 22:00:37'),(140892,1,'emergency token','Child','2023-02-19 22:04:06'),(140870,3,'Khizir Farrukh Chawla','Male','2023-02-21 21:31:38'),(NULL,4,'asdasd','Male','2023-02-21 21:38:17'),(NULL,2,'sad f afaf af sa','Female','2023-02-21 21:38:34'),(NULL,2,'sad asda dwad sada','Child','2023-02-21 21:38:47'),(140893,5,'new testing patient','Male','2023-02-21 21:46:17'),(140894,3,'hehe test 2','Child','2023-02-21 21:47:56'),(140895,4,'test 3331263165ads','Child','2023-02-21 21:48:18'),(140896,3,'test #55132321321','Female','2023-02-21 21:48:40'),(140878,6,'Huzaifa Farrukh','Male','2023-02-21 21:49:06');
 /*!40000 ALTER TABLE `patienttokenlogs` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -403,7 +403,7 @@ CREATE TABLE `patienttokennumbers` (
   PRIMARY KEY (`TokenID`),
   KEY `PatientID` (`PatientID`),
   CONSTRAINT `patienttokennumbers_ibfk_1` FOREIGN KEY (`PatientID`) REFERENCES `patientdetails` (`PatientID`)
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -412,7 +412,7 @@ CREATE TABLE `patienttokennumbers` (
 
 LOCK TABLES `patienttokennumbers` WRITE;
 /*!40000 ALTER TABLE `patienttokennumbers` DISABLE KEYS */;
-INSERT INTO `patienttokennumbers` VALUES (31,1,'Male',140876,'Muhammad Abdullah Farrukh Chawla','2023-02-16 15:25:56'),(32,1,'Female',NULL,'e vwserg','2023-02-16 15:26:40');
+INSERT INTO `patienttokennumbers` VALUES (31,1,'Male',140876,'Muhammad Abdullah Farrukh Chawla','2023-02-16 15:25:56'),(32,1,'Female',NULL,'e vwserg','2023-02-16 15:26:40'),(34,2,'Male',140885,'test 4','2023-02-19 22:00:37'),(35,1,'Child',140892,'emergency token','2023-02-19 22:04:06'),(36,3,'Male',140870,'Khizir Farrukh Chawla','2023-02-21 21:31:38'),(37,4,'Male',NULL,'asdasd','2023-02-21 21:38:17'),(38,2,'Female',NULL,'sad f afaf af sa','2023-02-21 21:38:34'),(39,2,'Child',NULL,'sad asda dwad sada','2023-02-21 21:38:47'),(40,5,'Male',140893,'new testing patient','2023-02-21 21:46:17'),(41,3,'Child',140894,'hehe test 2','2023-02-21 21:47:56'),(42,4,'Child',140895,'test 3331263165ads','2023-02-21 21:48:18'),(43,3,'Female',140896,'test #55132321321','2023-02-21 21:48:40'),(44,6,'Male',140878,'Huzaifa Farrukh','2023-02-21 21:49:06');
 /*!40000 ALTER TABLE `patienttokennumbers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -573,4 +573,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-02-19 16:31:40
+-- Dump completed on 2023-02-21 22:01:27
