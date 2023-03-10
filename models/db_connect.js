@@ -1,20 +1,17 @@
-const mysql = require('mysql');
+const mysql = require('mysql2/promise');
 const fs = require('fs');
 
 const WebConfigData = fs.readFileSync('webconfig.json');
 const WebConfig = JSON.parse(WebConfigData);
 
-const con = mysql.createConnection({
-    host: WebConfig.database.host,
-    user: WebConfig.database.user,
-    password: WebConfig.database.password
+const pool = mysql.createPool({
+	host: WebConfig.database.host,
+	user: WebConfig.database.user,
+	password: WebConfig.database.password,
+	database: WebConfig.database.database,
+	waitForConnections: true,
+	connectionLimit: WebConfig.database.connLimit,
+	queueLimit: WebConfig.database.queueLimit
 });
-con.connect(function(err) {
-    if(err) throw err;
-    console.log("connected to mysql database");
-});
-const sql = "use " + WebConfig.database.database + ";";
-con.query(sql, function (err, result) {
-    if (err) throw err;
-});
-module.exports = con;
+  
+module.exports = pool;
