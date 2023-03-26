@@ -77,7 +77,7 @@
                   </td>
                 </tr>
               <% } else { %>
-                <tr>
+                <tr style="background-color: yellow;">
                   <form method="post">
                     <td><%= DressingPads[i].ProductName %></td>
                     <td><input type="number" class="form-control" id="DressingPadPrice" name="DressingPadPrice" value="<%= DressingPads[i].ProductPrice %>" min="0" style="max-width: 90px;" required></td>
@@ -140,7 +140,7 @@
                   </td>
                 </tr>
               <% } else { %>
-                <tr>
+                <tr style="background-color: yellow;">
                   <form method="post">
                     <td><%= i+1 %></td>
                     <td><%= Products[i].ProductName %></td>
