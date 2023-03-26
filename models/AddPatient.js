@@ -1,67 +1,85 @@
-function ExecuteQuery(data, con, callback) {
-	var sql = "INSERT INTO patientdetails(`CaseNo`,`Type`,`PatientName`,`Age`,`Gender`,`GuardianName`,`Disease`,`Address`,`PhoneNumber`,`FirstVisit`)";
+async function getCaseNoCountQuery(CaseNoFetchParam, InputCaseNo) {
+  const sql = "SELECT count(`CaseNo`) AS \"CaseCount\" FROM patientdetails WHERE `CaseNo` LIKE ? AND CaseNo != 'Guest';";
+  const values = [CaseNoFetchParam + "%" + InputCaseNo];
 
-	var Type = "B";
-	var PatientName = data.patientname;
-	var Age = parseFloat(data.ageyears) + parseFloat(data.agemonths / 12);
-	Age = parseFloat(Age).toFixed(3);
-	var Gender = data.gender;
-	var GuardianName = data.guardianname;
-	var Disease = data.disease;
-	var Address = data.address;
-	var PhoneNumber = data.phonenum;
-	var FirstVisit = data.firstvisit;
-	var NewCaseNo = "";
-	var CaseNoFetchParam = String((new Date(data.firstvisit)).getFullYear() % 100) + Type + "-";
+  return [sql, values];
+}
+
+async function getMaxCaseNoQuery(CaseNoFetchParam) {
+  const sql = "SELECT MAX(`CaseNo`) AS \"CaseMax\" FROM patientdetails WHERE `CaseNo` LIKE ? AND CaseNo != 'Guest';";
+  const values = [CaseNoFetchParam + "%"];
+
+  return [sql, values];
+}
+
+async function insertPatientDataQuery(NewCaseNo, Type, PatientName, Age, Gender, GuardianName, Disease, Address, PhoneNumber, FirstVisit) {
+  const sql = "INSERT INTO patientdetails(`CaseNo`,`Type`,`PatientName`,`Age`,`Gender`,`GuardianName`,`Disease`,`Address`,`PhoneNumber`,`FirstVisit`) VALUES(?,?,?,?,?,?,?,?,?,STR_TO_DATE(?,'%Y-%m-%d'));";
+  const values = [NewCaseNo, Type, PatientName, Age, Gender, GuardianName, Disease, Address, PhoneNumber, FirstVisit];
+
+  return [sql, values];
+}
+
+async function ExecuteQuery(data, db_pool) {
+	const Type = "B";
+	const PatientName = data.patientname;
+	let Age = parseFloat(data.ageyears) + parseFloat(data.agemonths / 12);
+	Age = parseFloat(Age).toFixed(3); // merge this with above line and make age variable constant
+	const Gender = data.gender;
+	const GuardianName = data.guardianname;
+	const Disease = data.disease;
+	const Address = data.address;
+	const PhoneNumber = data.phonenum;
+	const FirstVisit = data.firstvisit;
+	const InputCaseNo = data.caseno;
+	let NewCaseNo = "";
+	const CaseNoFetchParam = String((new Date(data.firstvisit)).getFullYear() % 100) + Type + "-";
 	NewCaseNo += CaseNoFetchParam;
-	
-	if (data.caseno !== undefined) {
-		var sql1 = "SELECT count(`CaseNo`) AS \"CaseCount\" FROM patientdetails WHERE `CaseNo` LIKE '" + CaseNoFetchParam + "%" + data.caseno + "' AND CaseNo != 'Guest';";
-		console.log(sql1);
-		con.query(sql1, function (err, result) {
-			if (err) throw err;
-			console.log(result[0].CaseCount);
-			NewCaseNo += String(parseInt(result[0].CaseCount)).padStart(2, '0') + data.caseno;
-			console.log(NewCaseNo);
-			sql += " VALUES('" + NewCaseNo + "','" + Type + "','" + PatientName + "'," + Age + ",'" + Gender + "','" + GuardianName + "','" + Disease + "','" + Address;
-			sql += "','" + PhoneNumber + "',STR_TO_DATE('" + FirstVisit + "','%Y-%m-%d'));";
-			console.log(sql);
-			con.query(sql, function (err, result) {
-				if (err) throw err;
-				const PatientID = result.insertId;
-				callback(PatientID);
-			});
-		});
-	} else {
-		var sql1 = "SELECT MAX(`CaseNo`) AS \"CaseMax\" FROM patientdetails WHERE `CaseNo` LIKE '" + CaseNoFetchParam + "%' AND CaseNo != 'Guest';";
-		console.log(sql1);
-		con.query(sql1, function (err, result) {
-			if (err) throw err;
-			console.log("Max CaseNo:", result[0].CaseMax);
-			if (result[0].CaseMax == null) {
+
+	let conn;
+	try {
+    conn = await db_pool.getConnection();
+		await conn.beginTransaction();
+
+		if (InputCaseNo !== undefined) {
+			const [getCaseNoCount_SQL, getCaseNoCount_Values] = await getCaseNoCountQuery(CaseNoFetchParam, InputCaseNo);
+			console.log(getCaseNoCount_SQL, getCaseNoCount_Values);
+
+			const [getCaseNoCount_Rows] = await conn.query(getCaseNoCount_SQL, getCaseNoCount_Values);
+
+			NewCaseNo += String(parseInt(getCaseNoCount_Rows[0].CaseCount)).padStart(2, '0') + InputCaseNo;
+
+		} else {
+			const [getMaxCaseNo_SQL, getMaxCaseNo_Values] = await getMaxCaseNoQuery(CaseNoFetchParam);
+			console.log(getMaxCaseNo_SQL, getMaxCaseNo_Values);
+
+			const [getMaxCaseNo_Rows] = await conn.query(getMaxCaseNo_SQL, getMaxCaseNo_Values);
+			console.log("Max CaseNo:", getMaxCaseNo_Rows[0].CaseMax);
+
+			if (getMaxCaseNo_Rows[0].CaseMax === null) {
 				NewCaseNo += String(1).padStart(6, '0');
-				console.log("New CaseNo:", NewCaseNo);
-				sql += " VALUES('" + NewCaseNo + "','" + Type + "','" + PatientName + "'," + Age + ",'" + Gender + "','" + GuardianName + "','" + Disease + "','" + Address;
-				sql += "','" + PhoneNumber + "',STR_TO_DATE('" + FirstVisit + "','%Y-%m-%d'));";
-				console.log(sql);
-				con.query(sql, function (err, result) {
-					if (err) throw err;
-					const PatientID = result.insertId;
-					callback(PatientID);
-				});
 			} else {
-				NewCaseNo += String(parseInt((result[0].CaseMax).slice(4, 10)) + 1).padStart(6, '0');
-				console.log("New CaseNo:", NewCaseNo);
-				sql += " VALUES('" + NewCaseNo + "','" + Type + "','" + PatientName + "'," + Age + ",'" + Gender + "','" + GuardianName + "','" + Disease + "','" + Address;
-				sql += "','" + PhoneNumber + "',STR_TO_DATE('" + FirstVisit + "','%Y-%m-%d'));";
-				console.log(sql);
-				con.query(sql, function (err, result) {
-					if (err) throw err;
-					const PatientID = result.insertId;
-					callback(PatientID);
-				});
+				NewCaseNo += String(parseInt((getMaxCaseNo_Rows[0].CaseMax).slice(4, 10)) + 1).padStart(6, '0');
 			}
-		});
+		}
+
+		console.log("New CaseNo:", NewCaseNo);
+
+    const [InsertPatientData_SQL, InsertPatientData_Value] = await insertPatientDataQuery(NewCaseNo, Type, PatientName, Age, Gender, GuardianName, Disease, Address, PhoneNumber, FirstVisit);
+    console.log(InsertPatientData_SQL, InsertPatientData_Value);
+
+    const InsertPatientData_Result = await conn.query(InsertPatientData_SQL, InsertPatientData_Value);
+    const PatientID = InsertPatientData_Result[0].insertId;
+		console.log("Inserted patient ID:", PatientID);
+
+    await conn.commit();
+    console.log('Transaction committed AddPatient.');
+
+    return PatientID;
+	} catch (error) {
+		if (conn) { await conn.rollback(); }
+		throw error;
+	} finally {
+		if (conn) { conn.release(); }
 	}
 }
 module.exports = { ExecuteQuery };

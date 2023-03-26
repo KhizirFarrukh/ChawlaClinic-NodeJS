@@ -1,24 +1,37 @@
-function ExecuteQuery(id, ID_represents, arr_PaymentIDs, con, callback) {
-  if(arr_PaymentIDs.length === 0) {
-    callback([]);
-  } else {
-    const PaymentID_Match_Values = '(' + arr_PaymentIDs.join(', ') + ')';
-    var products_sql;
-    if(ID_represents === "Patient") {
-      products_sql = "SELECT prod.ProductName, proditem.Quantity, proditem.Amount, pay.PaymentID FROM products prod JOIN patientotherprodspurchased proditem on prod.ProductID = proditem.ProductID JOIN patientproductspurchased prodpurchase ON proditem.PurchaseID = prodpurchase.PurchaseID RIGHT JOIN patientpaymentrecord pay ON prodpurchase.PaymentID = pay.PaymentID WHERE pay.PatientID = " + id + " AND pay.PaymentID IN " + PaymentID_Match_Values + " ORDER BY pay.PaymentID DESC;";
-    } else if(ID_represents === "Payment") {
-      products_sql = "SELECT prod.ProductName, proditem.Quantity, proditem.Amount, pay.PaymentID FROM products prod JOIN patientotherprodspurchased proditem on prod.ProductID = proditem.ProductID JOIN patientproductspurchased prodpurchase ON proditem.PurchaseID = prodpurchase.PurchaseID RIGHT JOIN patientpaymentrecord pay ON prodpurchase.PaymentID = pay.PaymentID WHERE pay.PaymentID = " + id + ";";
-    }
-    console.log(products_sql);
-
-    con.query(products_sql, function (err, productsResult) {
-      if (err) throw err;
-
-      var product_details = Object.values(JSON.parse(JSON.stringify(productsResult)));
-
-      callback(product_details);
-    });
+async function getQuery(id, ID_represents, arr_PaymentIDs) {
+  let sql;
+  const values = [id];
+  if(ID_represents === "Patient") {
+    const placeholders = arr_PaymentIDs.map(() => '?').join(',');
+    sql = `SELECT prod.ProductName, proditem.Quantity, proditem.Amount, pay.PaymentID FROM products prod JOIN patientotherprodspurchased proditem on prod.ProductID = proditem.ProductID JOIN patientproductspurchased prodpurchase ON proditem.PurchaseID = prodpurchase.PurchaseID RIGHT JOIN patientpaymentrecord pay ON prodpurchase.PaymentID = pay.PaymentID WHERE pay.PatientID = ? AND pay.PaymentID IN (${placeholders}) ORDER BY pay.PaymentID DESC;`;
+    values.push(...arr_PaymentIDs); // this will result in an array that contains id as well as array of paymentIDs in one array
+  } else if(ID_represents === "Payment") {
+    sql = "SELECT prod.ProductName, proditem.Quantity, proditem.Amount, pay.PaymentID FROM products prod JOIN patientotherprodspurchased proditem on prod.ProductID = proditem.ProductID JOIN patientproductspurchased prodpurchase ON proditem.PurchaseID = prodpurchase.PurchaseID RIGHT JOIN patientpaymentrecord pay ON prodpurchase.PaymentID = pay.PaymentID WHERE pay.PaymentID = ?;";
   }
+  return [sql, values];
 }
 
+async function ExecuteQuery(id, ID_represents, arr_PaymentIDs, db_pool) {
+	if(arr_PaymentIDs.length === 0) {
+    return [];
+  } else {
+		let conn;
+		try {
+			conn = await db_pool.getConnection();
+			await conn.beginTransaction();
+
+			const [sql,values] = await getQuery(id, ID_represents, arr_PaymentIDs);
+			console.log(sql, values);
+
+			const [rows] = await conn.query(sql, values);
+			return rows;
+
+		} catch (error) {
+			if (conn) { await conn.rollback(); }
+			throw error;
+		} finally {
+			if (conn) { conn.release(); }
+		}
+	}
+}
 module.exports = { ExecuteQuery };

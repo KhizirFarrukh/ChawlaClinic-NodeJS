@@ -1,6 +1,6 @@
 async function getQuery() {
-	const sql = "SELECT PatientID, CaseNo FROM `patientdetails` WHERE CaseNo = 'Guest';";
-	
+	const sql = "DELETE FROM patienttokennumbers;";
+
 	return sql;
 }
 
@@ -13,8 +13,10 @@ async function ExecuteQuery(db_pool) {
 		const sql = await getQuery();
 		console.log(sql);
 
-		const [rows] = await conn.query(sql);
-		return rows;
+		await conn.query(sql);
+    
+		await conn.commit();
+		console.log('Transaction committed ResetTokenData.');
 
 	} catch (error) {
 		if (conn) { await conn.rollback(); }

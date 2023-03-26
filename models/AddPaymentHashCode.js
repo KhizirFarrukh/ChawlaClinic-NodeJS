@@ -1,9 +1,9 @@
-function ExecuteQuery(PaymentID, con, callback) {
+async function getHashValue(PaymentID) {
   const characters = '0123456789abcdefghijklmnopqrstuvwxyz';
   const charactersLength = characters.length;
   const random_length = 3;
-  var id = PaymentID;
-  var Hash_Value = "";
+  let id = PaymentID;
+  let Hash_Value = "";
 
   while (id >= charactersLength) {
     let div = Math.floor(id / charactersLength);
@@ -20,12 +20,37 @@ function ExecuteQuery(PaymentID, con, callback) {
   }
   console.log("Payment ID, Hash Value: ", PaymentID, Hash_Value);
 
-  const insert_payment_hashID_sql = "INSERT INTO patientpaymentsidentifiers(`PaymentID`,`PaymentHashCode`) VALUES(" + PaymentID + ",'" + Hash_Value + "');";
-  console.log(insert_payment_hashID_sql);
-  con.query(insert_payment_hashID_sql, function (err) {
-    if (err) throw err;
-    callback();
-  });
-  
+  return Hash_Value;
+}
+
+async function getQuery(PaymentID, Hash_Value) {
+  const sql = "INSERT INTO patientpaymentsidentifiers(`PaymentID`,`PaymentHashCode`) VALUES(?,?);";
+  const values = [PaymentID, Hash_Value];
+
+  return [sql, values];
+}
+
+async function ExecuteQuery(PaymentID, db_pool) {
+	let conn;
+	try {
+    const Hash_Value = await getHashValue(PaymentID);
+
+		conn = await db_pool.getConnection();
+		await conn.beginTransaction();
+
+		const [sql, values] = await getQuery(PaymentID, Hash_Value);
+		console.log(sql, values);
+
+		await conn.query(sql, values);
+		
+    await conn.commit();
+		console.log('Transaction committed AddPaymentHashCode.');
+
+	} catch (error) {
+		if (conn) { await conn.rollback(); }
+		throw error;
+	} finally {
+		if (conn) { conn.release(); }
+	}
 }
 module.exports = { ExecuteQuery };

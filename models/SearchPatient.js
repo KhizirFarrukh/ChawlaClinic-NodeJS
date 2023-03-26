@@ -1,24 +1,56 @@
-function ExecuteQuery(searchOption, searchKeyword, searchMode, con, callback) {
-    var sql = "SELECT * FROM patientdetails WHERE ";
-    if(searchOption === "CaseNo") {
-        searchKeyword = searchKeyword.toLowerCase();
-        sql += "LOWER(CaseNo) LIKE '%" + searchKeyword + "%'";
-    } else if(searchOption === "MobileNum") {
-        sql += "PhoneNumber = '" + searchKeyword + "'";
-    } else if(searchOption === "Name") {
-        searchKeyword = searchKeyword.toLowerCase();
-        sql += "LOWER(PatientName) LIKE '%" + searchKeyword + "%'";
-    } else if(searchOption === "PatientID") {
-        sql += "PatientID = " + searchKeyword;
-    }
-    if(searchMode === "token") {
-        sql += " AND PatientID NOT IN (SELECT PatientID FROM patienttokennumbers WHERE PatientID IS NOT NULL)"
-    }
-    sql += " ORDER BY FirstVisit DESC LIMIT 10;";
-    console.log(sql)
-    con.query(sql, function (err, result) {
-        if (err) throw err;
-        callback(result);
-    });
+async function getQueryForPatientSearchGeneral(searchKeyword) {
+	const sql = "SELECT * FROM patientdetails WHERE (LOWER(CaseNo) LIKE ? OR PhoneNumber LIKE ? OR LOWER(PatientName) LIKE ?) ORDER BY FirstVisit DESC LIMIT 10;";
+	const searchKeywordParam = `%${searchKeyword.toLowerCase()}%`;
+	const values = [searchKeywordParam, searchKeywordParam, searchKeywordParam];
+
+	return [sql, values];
+}
+
+async function getQueryForPatientSearchToken(searchKeyword) {
+	const sql = "SELECT * FROM patientdetails WHERE (LOWER(CaseNo) LIKE ? OR PhoneNumber LIKE ? OR LOWER(PatientName) LIKE ?) AND PatientID NOT IN (SELECT PatientID FROM patienttokennumbers WHERE PatientID IS NOT NULL) ORDER BY FirstVisit DESC LIMIT 10;";
+	const searchKeywordParam = `%${searchKeyword.toLowerCase()}%`;
+	const values = [searchKeywordParam, searchKeywordParam, searchKeywordParam];
+
+	return [sql, values];
+}
+
+async function getQueryForPatientInfo(searchKeyword) {
+	const sql = "SELECT * FROM patientdetails WHERE PatientID = ? ORDER BY FirstVisit DESC LIMIT 10;";
+	const values = [searchKeyword];
+
+	return [sql, values];
+}
+
+async function ExecuteQuery(searchKeyword, searchMode, db_pool) {
+	let conn;
+	try {
+		conn = await db_pool.getConnection();
+		await conn.beginTransaction();
+
+		let sql, values;
+		switch (searchMode) {
+			case "PatientSearch":
+				[sql, values] = await getQueryForPatientSearchGeneral(searchKeyword);
+				break;
+			case "PatientInfo":
+				[sql, values] = await getQueryForPatientInfo(searchKeyword);
+				break;
+			case "Token_PatientSearch":
+				[sql, values] = await getQueryForPatientSearchToken(searchKeyword);
+				break;
+			default:
+				console.log("Invalid search option");
+				return []
+		}
+		console.log(sql, values);
+
+		const [rows] = await conn.query(sql, values);
+		return rows;
+	} catch (error) {
+		if (conn) { await conn.rollback(); }
+		throw error;
+	} finally {
+		if (conn) { conn.release(); }
+	}
 }
 module.exports = { ExecuteQuery };
