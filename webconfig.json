@@ -5,6 +5,8 @@
     "host": "localhost",
     "user": "root",
     "password": "root",
-    "database": "chawlaclinic"
+    "database": "chawlaclinic",
+    "connLimit": 1,
+    "queueLimit": 15
   }
 }
