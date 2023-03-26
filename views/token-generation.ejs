@@ -58,35 +58,15 @@
 					<form>
 						<div class="input-group mb-3" style="max-height: 30px;">
 							<span class="input-group-text" id="basic-addon1">Search for patient</span>
-							<input type="text" class="form-control" id="searchkeyword" name="searchkeyword" style="max-width: 500px;">
+							<input type="text" class="form-control" id="searchkeyword" name="searchkeyword" style="max-width: 500px;" placeholder="Search using name, phone no. or case no.">
 							<button class="btn btn-outline-primary" type="submit" id="SearchPatientBtn">
 								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
 									<path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
 								</svg> Search
 							</button>
 						</div>
-						<div class="d-flex justify-content-between">
-							<div class="form-check">
-								<input class="form-check-input" type="radio" name="searchoption" id="CaseNoRadio" value="CaseNo" checked>
-								<label class="form-check-label" for="CaseNoRadio">
-									Case Number
-								</label>
-							</div>
-							<div class="form-check">
-								<input class="form-check-input" type="radio" name="searchoption" id="MobileNumRadio" value="MobileNum">
-								<label class="form-check-label" for="MobileNumRadio">
-									Mobile Number
-								</label>
-							</div>
-							<div class="form-check">
-								<input class="form-check-input" type="radio" name="searchoption" id="NameRadio" value="Name">
-								<label class="form-check-label" for="NameRadio">
-									Patient Name
-								</label>
-							</div>
-						</div>
 					</form>
-					<% if(searchResult != undefined) {%>
+					<% if(searchResult !== undefined) { %>
 						<% if (searchResult.length > 0) { %>
 							<table class="table">
 								<thead>
@@ -100,7 +80,7 @@
 									</tr>
 								</thead>
 								<tbody>
-										<% for ( let i = 0;i < searchResult.length;i++) { %>
+										<% for ( let i = 0; i < searchResult.length;i++) { %>
 											<% var date = searchResult[i].FirstVisit; %>
 											<% date = String(date.getDate()).padStart(2, '0') + "-" + String(date.getMonth() + 1).padStart(2, '0') + "-" + date.getFullYear(); %> 
 											<tr>
