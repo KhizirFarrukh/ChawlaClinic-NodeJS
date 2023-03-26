@@ -13,7 +13,7 @@
       const params = data.getAttribute("data-params");
       const redirectURL = data.getAttribute("data-redirecturl");
       setTimeout(() => {
-        window.open("PrintManager://" + printmethod + "?" + params, "_blank");
+        window.open("PrinterHandler://" + printmethod + "?" + params, "_blank");
         window.location.href = redirectURL;
       }, 1000);
     </script>
