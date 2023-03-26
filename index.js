@@ -1,17 +1,18 @@
 const express = require('express');
 const bodyParser = require("body-parser");
 const fs = require('fs');
-const { exec } = require('child_process');
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
 
-const db_connection = require('./models/db_connect');
+const db_pool = require('./models/db_connect');
 
 const AddPaymentHashCode = require('./models/AddPaymentHashCode');
 const GetPaymentIDFromHash = require('./models/GetPaymentIDFromHash');
 
-const SQL_AddTokenInfo = require('./models/SQL_AddTokenInfo');
-const SQL_GetTokenInfo = require('./models/SQL_GetTokenInfo');
+const AddTokenInfo = require('./models/AddTokenInfo');
+const GetTokenInfo = require('./models/GetTokenInfo');
 const GetTokenInfoByID = require('./models/GetTokenInfoByID');
-const SQL_ResetTokenData = require('./models/SQL_ResetTokenData');
+const ResetTokenData = require('./models/ResetTokenData');
 
 const AddPatient = require('./models/AddPatient');
 const SearchPatient = require('./models/SearchPatient');
@@ -56,105 +57,106 @@ const WebConfig = JSON.parse(WebConfigData);
 const isNumeric = str => /^\d+$/.test(str);
 const isAlphaNumericLowercase = str => /^[a-z0-9]+$/.test(str);
 
-function AddPaymentRecordCartGet(PatientID,searchResult,discountOption,res) {
-	GetCartList.ExecuteQuery(PatientID, db_connection, function (cartInfo, TotalAmount) {
-		console.log(cartInfo);
-		GetTempDressingRecord.ExecuteQuery(PatientID, db_connection, function(tempDressingResult) {
-			var totalAmount = TotalAmount;
-			// totalAmount += tempDressingResult[0].TotalAmount;
-			totalAmount += tempDressingResult.reduce((total, tempDressing) => total + tempDressing.TotalAmount, 0);
-			console.log(totalAmount);
-			console.log(tempDressingResult);
-			GetGuestPatient.ExecuteQuery(db_connection, function(GuestPatient) {
-				console.log(GuestPatient);
-				var GuestMode = false;
-				if(+PatientID === GuestPatient[0].PatientID) {
-					GuestMode = true;
-				}
-				res.render('add-payment-record', { title: "Add Patient Payment Record | Chawla Clinic", DressingRecord_OnHold: tempDressingResult, SearchResult: searchResult, CartItems: cartInfo, TotalAmount: totalAmount, DiscountOption : discountOption, GuestMode});
-			});
-		});
-	});
+async function AddPaymentRecordCartGet(PatientID) {
+	const [cartInfo, TotalAmount] = await GetCartList.ExecuteQuery(PatientID, db_pool);
+	console.log(cartInfo);
+
+	const tempDressingResult = await GetTempDressingRecord.ExecuteQuery(PatientID, db_pool);
+
+	let totalAmount = TotalAmount;
+	totalAmount += tempDressingResult.reduce((total, tempDressing) => total + tempDressing.TotalAmount, 0);
+	console.log(totalAmount);
+	console.log(tempDressingResult);
+
+	const GuestPatient = await GetGuestPatient.ExecuteQuery(db_pool);
+	console.log(GuestPatient);
+
+	let GuestMode = false;
+	if(+PatientID === GuestPatient[0].PatientID) {
+		GuestMode = true;
+	}
+
+	const values = {DressingRecord_OnHold: tempDressingResult, CartItems: cartInfo, TotalAmount: totalAmount, GuestMode}
+	return values;
 }
 
-function PatientPaymentRecordGet(PatientID, ID_represents, retrieveLimit, callback) {
-	GetPaymentBreakdown.ExecuteQuery(PatientID, ID_represents, retrieveLimit, db_connection, function (paymentDetails) {
-		console.log("paymentDetails check",paymentDetails);
-		const arr_PaymentIDs = paymentDetails.map(paymentDetail => paymentDetail.PaymentID);
-		GetDressingDetails.ExecuteQuery(PatientID, ID_represents, arr_PaymentIDs, db_connection, function (dressingDetails) {
-			console.log("dressingDetails check",dressingDetails);
-			GetOintmentDetails.ExecuteQuery(PatientID, ID_represents, arr_PaymentIDs, db_connection, function (ointmentDetails) {
-				console.log("ointmentDetails check",ointmentDetails);
-				GetProductDetails.ExecuteQuery(PatientID, ID_represents, arr_PaymentIDs, db_connection, function (productDetails) {
-					console.log("productDetails check",productDetails);
-					const PaymentRecords = { PaymentDetails : paymentDetails , DressingDetails : dressingDetails, OintmentDetails : ointmentDetails, ProductDetails : productDetails };
-					callback(PaymentRecords);
-				});
-			});
-		});
-	});
+async function PatientPaymentRecordGet(PatientID, ID_represents, retrieveLimit) {
+	const paymentDetails = await GetPaymentBreakdown.ExecuteQuery(PatientID, ID_represents, retrieveLimit, db_pool);
+	console.log("paymentDetails check",paymentDetails);
+
+	const arr_PaymentIDs = paymentDetails.map(paymentDetail => paymentDetail.PaymentID);
+
+	const dressingDetails = await GetDressingDetails.ExecuteQuery(PatientID, ID_represents, arr_PaymentIDs, db_pool);
+	console.log("dressingDetails check",dressingDetails);
+	
+	const ointmentDetails = await GetOintmentDetails.ExecuteQuery(PatientID, ID_represents, arr_PaymentIDs, db_pool);
+	console.log("ointmentDetails check",ointmentDetails);
+
+	const productDetails = await GetProductDetails.ExecuteQuery(PatientID, ID_represents, arr_PaymentIDs, db_pool);
+	console.log("productDetails check",productDetails);
+
+	const PaymentRecords = { PaymentDetails : paymentDetails , DressingDetails : dressingDetails, OintmentDetails : ointmentDetails, ProductDetails : productDetails };
+	return PaymentRecords;
 }
 
-function DBBackupHandler(BackupDBPass, req, res) {
+async function DBBackupHandler(BackupDBPass, req, res) {
 	if(BackupDBPass === WebConfig.db_backup_password) {
-		BackupDatabase(function(filepath) {
-			if(filepath !== false) {
-				res.download(filepath);
-			}
-		});
+		const filepath = await BackupDatabase();
+		console.log("DB Backup Filepath:", filepath);
+		if(filepath !== false) {
+			res.download(filepath);
+		}
 	} else {
 		res.redirect(req.headers.referer || '/');
 	}
 }
 
-function BackupDatabase(callback) {
-	const current_timestamp = new Date(Date.now() + (5*60*60*1000)).toISOString().slice(0,19).replace(/-/g,"").replace(/:/g,"").replace(/T/g,"");
-	
-	const db_username = WebConfig.database.user;
-	const db_pass = WebConfig.database.password;
-	const db_name = WebConfig.database.database;
-	const db_backup_folder = "DB_Backup";
-	const db_backup_filename = "db_backup_" + current_timestamp + ".sql";
-	const db_backup_filepath = db_backup_folder + "\\" + db_backup_filename;
 
-	const mkdir_shell_cmd = "mkdir " + db_backup_folder;
-	const db_backup_shell_cmd = "mysqldump -u " + db_username + " -p" + db_pass + " " + db_name + " --routines --triggers > " + db_backup_filepath;
-
-	console.log(db_backup_shell_cmd);
-
-	exec(mkdir_shell_cmd, (error) => {
-		if (error) {
-			console.error("mkdir exec error: " + error);
-			callback(false);
-		}
-		exec(db_backup_shell_cmd, (error) => {
-			if (error) {
-				console.error("mysqldump exec error: " + error);
-				callback(false);
-			} else {
-				console.log("Backup successful");
-				callback(db_backup_filepath);
-			}
-		});
-	});
+async function BackupDatabase() {
+  const current_timestamp = new Date(Date.now() + (5*60*60*1000)).toISOString().slice(0,19).replace(/-/g,"").replace(/:/g,"").replace(/T/g,"");
+  
+  const db_username = WebConfig.database.user;
+  const db_pass = WebConfig.database.password;
+  const db_name = WebConfig.database.database;
+  const db_backup_folder = "DB_Backup";
+  const db_backup_filename = "db_backup_" + current_timestamp + ".sql";
+  const db_backup_filepath = db_backup_folder + "\\" + db_backup_filename;
+  
+  // const mkdir_shell_cmd = "mkdir " + db_backup_folder;
+  const db_backup_shell_cmd = "mysqldump -u " + db_username + " -p" + db_pass + " " + db_name + " --routines --triggers > " + db_backup_filepath;
+  
+  console.log(db_backup_shell_cmd);
+  
+  try {
+		if (!fs.existsSync(db_backup_folder)) {
+      fs.mkdirSync(db_backup_folder);
+    }
+    // await exec(mkdir_shell_cmd);
+    await exec(db_backup_shell_cmd);
+    console.log("Backup successful");
+    return db_backup_filepath;
+  } catch (error) {
+    console.error("exec error: ", error);
+    return false;
+  }
 
 	// If mysqldump is not recognized as a command, make sure to add 'C:\xampp\mysql\bin' to path (or the path \mysql\bin of wherever mysql is installed).
 }
 
-function GetInventoryData(editProductID,editDressingID,callback) {
-	GetProductCategories.ExecuteQuery(db_connection,function(categories) {
-		console.log(categories.slice(0,5));
-		GetDressingPads.ExecuteQuery(db_connection, function(dressing_pads) {
-			console.log(dressing_pads);
-			GetProducts.ExecuteQuery(db_connection, function(products) {
-				console.log(products.slice(0,5));
-				GetDiscontinuedProducts.ExecuteQuery(db_connection, function(discontinued_products) {
-					const responseValues = { title: "Inventory | Chawla Clinic", Categories:categories, Products:products, DressingPads:dressing_pads, Discontinued_Products:discontinued_products, EditProductID:editProductID, EditDressingID:editDressingID}
-					callback(responseValues);
-				});
-			});
-		});
-	});
+async function GetInventoryData() {
+	const categories = await GetProductCategories.ExecuteQuery(db_pool);
+	console.log(categories.slice(0,5));
+
+	const dressing_pads = await GetDressingPads.ExecuteQuery(db_pool);
+	console.log(dressing_pads);
+
+	const products = await GetProducts.ExecuteQuery(db_pool);
+	console.log(products.slice(0,5));
+
+	const discontinued_products = await GetDiscontinuedProducts.ExecuteQuery(db_pool);
+
+	const InventoryData = { Categories:categories, Products:products, DressingPads:dressing_pads, Discontinued_Products:discontinued_products}
+	return InventoryData;
 }
 
 const app = express();
@@ -169,230 +171,229 @@ app.listen(WebConfig.port);
 
 app.set('view engine', 'ejs');
 
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
 	res.redirect('/patient');
 });
 
-app.get('/patient', (req, res) => {
-	console.log('req query',req.query);
-	const searchOption = req.query.searchoption;
+app.get('/patient', async (req, res) => {
+	console.log('req query', req.query);
 	const searchKeyword = req.query.searchkeyword;
-	console.log(searchOption);
-	console.log(searchKeyword);
-	if (searchOption === undefined) {
+	if (searchKeyword === undefined) {
 		res.render('patient', { title: "Patient | Chawla Clinic", searchResult: undefined });
 	} else {
-		SearchPatient.ExecuteQuery(searchOption, searchKeyword, "patientsearch", db_connection, function (data) {
-			res.render('patient', { title: "Patient | Chawla Clinic", searchResult: data });
-		});
+		const data = await SearchPatient.ExecuteQuery(searchKeyword, "PatientSearch", db_pool);
+		res.render('patient', { title: "Patient | Chawla Clinic", searchResult: data });
 	}
 });
 
-app.post('/patient', (req, res) => {
-	console.log('req body',req.body);
+app.post('/patient', async (req, res) => {
+	console.log('req body', req.body);
 	const BackupDBPass = req.body.BackupDBPassInput;
 	if(req.body.AddPatient !== undefined) {
-		AddPatient.ExecuteQuery(req.body, db_connection, function (PatientID) {
-			res.redirect('/patient-details?id=' + PatientID);
-		});
+		const PatientID = await AddPatient.ExecuteQuery(req.body, db_pool);
+
+		res.redirect('/patient-details?id=' + PatientID);
 	} else if(BackupDBPass !== undefined) {
-		DBBackupHandler(BackupDBPass, req, res);
+		await DBBackupHandler(BackupDBPass, req, res);
 	}
 });
 
-app.get('/patient-details', (req, res) => {
+app.get('/patient-details', async (req, res) => {
 	const PatientID = req.query.id;
-	var editMode = false;
-	if (PatientID == undefined) {
+	let editMode = false;
+	if (PatientID === undefined) {
 		res.status(404);
-		res.render('page-not-found')
+		res.render('page-not-found');
 	} else {
-		SearchPatient.ExecuteQuery("PatientID", PatientID, "patientinfo", db_connection, function (data) {
-			console.log(data);
-			if (data.length == 1) {
-				GetCurrentBalance.ExecuteQuery(PatientID, db_connection, function (bal) {
-					var CurrentBalance = bal[0].paid + bal[0].discount - bal[0].total;
-					console.log(CurrentBalance);
-					PatientPaymentRecordGet(PatientID, "Patient", true, function(PaymentRecords) {
-						res.render('patient-details', { title: "Patient Details | Chawla Clinic", PatientDetails: data, EditMode: editMode, Balance: CurrentBalance, ...PaymentRecords});
-					});
-				});
-			} else if (data.length == 0) {
-				res.render('patient-details', { title: "Patient Details | Chawla Clinic", PatientDetails: data });
-			}
-		});
-	}
-});
+		const data = await SearchPatient.ExecuteQuery(PatientID, "PatientInfo", db_pool);
+		console.log(data);
+		if (data.length === 1) {
+			const bal = await GetCurrentBalance.ExecuteQuery(PatientID, db_pool);
+			console.log(bal);
+			const paidBal = (bal[0].paid !== null && typeof bal[0].paid === "string") ? parseInt(bal[0].paid) : 0;
+			const discountBal = (bal[0].discount !== null && typeof bal[0].discount === "string") ? parseInt(bal[0].discount) : 0;
+			const totalBal = (bal[0].total !== null && typeof bal[0].total === "string") ? parseInt(bal[0].total) : 0;
 
-app.post('/patient-details', (req, res) => {
-	const PatientID = req.query.id;
-	const BackupDBPass = req.body.BackupDBPassInput;
-	const ReprintPaymentID = req.body.ReprintPayment;
-	var editMode = false;
-	console.log(req.body);
-	if (req.body.editDetails == "edit") {
-		editMode = true;
-	} else if (req.body.editDetails == "save") {
-		UpdatePatient.ExecuteQuery(PatientID, req.body, db_connection);
-	} else if (req.body.deposit == "deposit") {
-		DepositAmount.ExecuteQuery(PatientID, req.body, db_connection);
-	}
-	if (PatientID == undefined) {
-		res.status(404);
-		res.render('page-not-found')
-	} else {
-		if(BackupDBPass !== undefined) {
-			DBBackupHandler(BackupDBPass, req, res);
-		} else if(ReprintPaymentID !== undefined) {
-			GetPaymentSummary.ExecuteQuery(parseInt(ReprintPaymentID), db_connection, function(result) {
-				console.log(result);
-				const Payment_HashValue = result[0].PaymentHashCode;
-				if(Payment_HashValue === null) {
-					res.redirect(req.originalUrl);
-				} else {
-					const AmountPaid = result[0].AmountPaid;
-					const PaymentDate = result[0].Date;
-					const PaymentDateObj = new Date(PaymentDate);
-					const processedPaymentDate = String(PaymentDateObj.getDate()).padStart(2, '0' ) + "%2F" + String(PaymentDateObj.getMonth() + 1).padStart(2, '0' ) + "%2F" + PaymentDateObj.getFullYear();
-					const redirectURL = req.originalUrl;
-					console.log("Print Handler Values: ", Payment_HashValue, AmountPaid, processedPaymentDate, redirectURL);
-					res.render('print-handler', {printmethod:"printpaymentreceipt", params:"PaymentHashID=" + Payment_HashValue + "&AmountPaid=" + AmountPaid + "&PaymentDate=" + processedPaymentDate, redirectURL});
-				}
-			});
-		} else {
-			SearchPatient.ExecuteQuery("PatientID", PatientID, "patientinfo", db_connection, function (data) {
-				console.log(data);
-				GetCurrentBalance.ExecuteQuery(PatientID, db_connection, function (bal) {
-					var CurrentBalance = bal[0].paid + bal[0].discount - bal[0].total;
-					console.log(CurrentBalance);
-					PatientPaymentRecordGet(PatientID, "Patient", true, function(PaymentRecords) {
-						res.render('patient-details', { title: "Patient Details | Chawla Clinic", PatientDetails: data, EditMode: editMode, Balance: CurrentBalance, ...PaymentRecords});
-					});
-				});
-			});
+			let CurrentBalance = paidBal + discountBal - totalBal;
+			console.log("Balance:",CurrentBalance);
+
+			const PaymentRecords = await PatientPaymentRecordGet(PatientID, "Patient", true);
+			res.render('patient-details', { title: "Patient Details | Chawla Clinic", PatientDetails: data, EditMode: editMode, Balance: CurrentBalance, ...PaymentRecords});
+		} else if (data.length === 0) {
+			res.render('patient-details', { title: "Patient Details | Chawla Clinic", PatientDetails: data });
 		}
 	}
 });
 
-app.get('/patient-details/add-payment-record', (req, res) => {
+app.post('/patient-details', async (req, res) => {
+	const PatientID = req.query.id;
+	const BackupDBPass = req.body.BackupDBPassInput;
+	const ReprintPaymentID = req.body.ReprintPayment;
+
+	let editMode = false;
+	console.log(req.body);
+
+	if (req.body.editDetails === "edit") {
+		editMode = true;
+	} else if (req.body.editDetails === "save") {
+		await UpdatePatient.ExecuteQuery(PatientID, req.body, db_pool);
+	} else if (req.body.deposit === "deposit") {
+		await DepositAmount.ExecuteQuery(PatientID, req.body, db_pool);
+	}
+
+	if(BackupDBPass !== undefined) {
+		await DBBackupHandler(BackupDBPass, req, res);
+	} else if (PatientID === undefined) {
+		res.status(404);
+		res.render('page-not-found');
+	} else {
+		if(ReprintPaymentID !== undefined) {
+			if(!isNaN(ReprintPaymentID)) {
+				const PaymentSummary = await GetPaymentSummary.ExecuteQuery(parseInt(ReprintPaymentID), db_pool);
+				console.log(PaymentSummary);
+				const Payment_HashValue = PaymentSummary[0].PaymentHashCode;
+				if(Payment_HashValue === null) {
+					res.redirect(req.originalUrl);
+				} else {
+					const AmountPaid = PaymentSummary[0].AmountPaid;
+					const PaymentDate = PaymentSummary[0].Date;
+					const PaymentDateObj = new Date(PaymentDate);
+					const processedPaymentDate = String(PaymentDateObj.getDate()).padStart(2, '0' ) + "%2F" + String(PaymentDateObj.getMonth() + 1).padStart(2, '0' ) + "%2F" + PaymentDateObj.getFullYear();
+					const redirectURL = req.originalUrl;
+					console.log("Printer Handler Values: ", Payment_HashValue, AmountPaid, processedPaymentDate, redirectURL);
+					res.render('print-handler', {printmethod:"printpaymentreceipt", params:"PaymentHashID=" + Payment_HashValue + "&AmountPaid=" + AmountPaid + "&PaymentDate=" + processedPaymentDate, redirectURL});
+				}
+			} else {
+				res.status(404);
+				res.render('page-not-found'); //To be changed to Error 400: Bad Request
+			}
+		} else {
+			res.redirect(req.originalUrl);
+		}
+	}
+});
+
+app.get('/patient-details/add-payment-record', async (req, res) => {
 	if(req.query.addID !== undefined) {
-		var PatientID = req.query.addID;
-		GetDiscountMode.ExecuteQuery(PatientID, db_connection, function(DiscountOption) {
-			console.log(DiscountOption);
-			const discountOption = DiscountOption[0].DiscountMode;
-			AddPaymentRecordCartGet(PatientID,undefined,discountOption,res);
-		});
+		let PatientID = req.query.addID;
+		const DiscountOption = await GetDiscountMode.ExecuteQuery(PatientID, db_pool);
+		console.log(DiscountOption);
+		const discountOption = DiscountOption[0].DiscountMode;
+		const PaymentRecordCartDetails = await AddPaymentRecordCartGet(PatientID);
+		res.render('add-payment-record', { title: "Add Patient Payment Record | Chawla Clinic", SearchResult: undefined, DiscountOption : discountOption, ...PaymentRecordCartDetails});
 	} else {
 		res.status(404);
 		res.render('page-not-found');
 	}
 });
 
-app.post('/patient-details/add-payment-record', (req, res) => {
+app.post('/patient-details/add-payment-record', async (req, res) => {
 	console.log(req.body);
 	console.log(req.query);
 	const BackupDBPass = req.body.BackupDBPassInput;
-	var PatientID = req.query.addID;
+	const PatientID = req.query.addID;
 	if(PatientID !== undefined) {
-		GetDiscountMode.ExecuteQuery(PatientID, db_connection, function(DiscountOption) {
-			console.log(DiscountOption);
-			const discountOption = DiscountOption[0].DiscountMode;
-			if (req.body.incrementQuantity !== undefined) {
-				console.log("incrementQuantity");
-				CartManagement.ExecuteQuery(req.body.incrementQuantity, PatientID, 1, db_connection, function (result) {
-					console.log(result);
-					AddPaymentRecordCartGet(PatientID,undefined,discountOption,res);
-				});
-			} else if (req.body.decrementQuantity !== undefined) {
-				console.log("decrementQuantity");
-				CartManagement.ExecuteQuery(req.body.decrementQuantity, PatientID, -1, db_connection, function (result) {
-					console.log(result);
-					AddPaymentRecordCartGet(PatientID,undefined,discountOption,res);
-				});
-			} else if (req.body.ConfirmCartItems !== undefined) {
-				console.log("ConfirmCartItems");
-				var DiscountAmount = 0;
-				if(req.body.DiscountAmount !== undefined) {
-					DiscountAmount = req.body.DiscountAmount;
-				}
-				GetGuestPatient.ExecuteQuery(db_connection, function(guest) {
-					var isGuest = false;
-					if(guest[0].PatientID === +PatientID) {
-						isGuest = true;
-					}
-					console.log("is guest:", isGuest);
-					ConfirmCartItems.ExecuteQuery(PatientID, req.body.PurchaseDate, req.body.AmountPaid, DiscountAmount, discountOption, GetCartList, GetTempDressingRecord, AddPaymentHashCode, isGuest, db_connection, function (PaymentID) {
-						if(req.body.GenerateReceipt === "True") {
-							GetPaymentSummary.ExecuteQuery(PaymentID, db_connection, function(result) {
-								console.log(result);
-								const Payment_HashValue = result[0].PaymentHashCode;
-								if(Payment_HashValue === null) {
-									res.redirect('/patient-details/?id=' + PatientID);
-								} else {
-									const AmountPaid = result[0].AmountPaid;
-									const PaymentDate = result[0].Date;
-									const PaymentDateObj = new Date(PaymentDate);
-									const processedPaymentDate = String(PaymentDateObj.getDate()).padStart(2, '0' ) + "%2F" + String(PaymentDateObj.getMonth() + 1).padStart(2, '0' ) + "%2F" + PaymentDateObj.getFullYear();
-									console.log(Payment_HashValue, AmountPaid, processedPaymentDate);
-									const redirectURL = '/patient-details/?id=' + PatientID;
-									res.render('print-handler', {printmethod:"printpaymentreceipt", params:"PaymentHashID=" + Payment_HashValue + "&AmountPaid=" + AmountPaid + "&PaymentDate=" + processedPaymentDate, redirectURL});
-								}
-							});
-						} else {
-							res.redirect('/patient-details/?id=' + PatientID);
-						}
-						
-					});
-				});
-			} else if (req.body.prodID !== undefined) {
-				console.log("prodID");
-				CartManagement.ExecuteQuery(req.body.prodID, PatientID, 1, db_connection, function (result) {
-					console.log(result);
-					AddPaymentRecordCartGet(PatientID,undefined,discountOption,res);
-				});
-			} else if (req.body.searchproducts !== undefined) {
-				console.log("searchproducts");
-				SearchProducts.ExecuteQuery(req.body.searchproducts, db_connection, function (searchResult) {
-					console.log(searchResult);
-					AddPaymentRecordCartGet(PatientID,searchResult,discountOption,res);
-				});
-			} else if(req.body.AddTempDressingRecord !== undefined) {
-				console.log("AddTempDressingRecord");
-				AddTempDressingRecord.ExecuteQuery(req.body, PatientID, GetPadPricing, db_connection, function () {
-					AddPaymentRecordCartGet(PatientID,undefined,discountOption,res);
-				});
-			} 
-			else if(req.body.RemoveTempDressingHold !== undefined) {
-				console.log("RemoveTempDressingHold");
-				if(isNumeric(req.body.RemoveTempDressingHold)) {
-					const TempID = parseInt(req.body.RemoveTempDressingHold);
-					RemoveTempDressingHold.ExecuteQuery(TempID, db_connection, function () {
-						AddPaymentRecordCartGet(PatientID,undefined,discountOption,res);
-					});
-				} else { AddPaymentRecordCartGet(PatientID,undefined,discountOption,res); }
+		const DiscountOption = await GetDiscountMode.ExecuteQuery(PatientID, db_pool);
+		console.log(DiscountOption);
+		const discountOption = DiscountOption[0].DiscountMode;
+		if (req.body.incrementQuantity !== undefined) {
+			console.log("incrementQuantity");
+			await CartManagement.ExecuteQuery(req.body.incrementQuantity, PatientID, 1, db_pool);
+			const PaymentRecordCartDetails = await AddPaymentRecordCartGet(PatientID);
+			res.render('add-payment-record', { title: "Add Patient Payment Record | Chawla Clinic", SearchResult: undefined, DiscountOption : discountOption, ...PaymentRecordCartDetails});
+		} else if (req.body.decrementQuantity !== undefined) {
+			console.log("decrementQuantity");
+			await CartManagement.ExecuteQuery(req.body.decrementQuantity, PatientID, -1, db_pool);
+			const PaymentRecordCartDetails = await AddPaymentRecordCartGet(PatientID);
+			res.render('add-payment-record', { title: "Add Patient Payment Record | Chawla Clinic", SearchResult: undefined, DiscountOption : discountOption, ...PaymentRecordCartDetails});
+		} else if (req.body.ConfirmCartItems !== undefined) {
+			console.log("ConfirmCartItems");
+			
+			let DiscountAmount = 0;
+			if(req.body.DiscountAmount !== undefined) {
+				DiscountAmount = req.body.DiscountAmount;
 			}
-		});
-	}
-	if(BackupDBPass !== undefined) {
-		DBBackupHandler(BackupDBPass, req, res);
+			
+			const guest = await GetGuestPatient.ExecuteQuery(db_pool);
+			let isGuest = false;
+			if(guest[0].PatientID === +PatientID) {
+				isGuest = true;
+			}
+			console.log("is guest:", isGuest);
+			
+			const PaymentID = await ConfirmCartItems.ExecuteQuery(PatientID, req.body.PurchaseDate, req.body.AmountPaid, DiscountAmount, discountOption, GetCartList, GetTempDressingRecord, isGuest, db_pool);
+			await AddPaymentHashCode.ExecuteQuery(PaymentID, db_pool);
+
+			if(req.body.GenerateReceipt === "True") {
+				const PaymentSummary = await GetPaymentSummary.ExecuteQuery(PaymentID, db_pool);
+				console.log(PaymentSummary);
+				const Payment_HashValue = PaymentSummary[0].PaymentHashCode;
+				if(Payment_HashValue === null) {
+					res.redirect('/patient-details/?id=' + PatientID);
+				} else {
+					const AmountPaid = PaymentSummary[0].AmountPaid;
+					const PaymentDate = PaymentSummary[0].Date;
+					const PaymentDateObj = new Date(PaymentDate);
+					const processedPaymentDate = String(PaymentDateObj.getDate()).padStart(2, '0' ) + "/" + String(PaymentDateObj.getMonth() + 1).padStart(2, '0' ) + "/" + PaymentDateObj.getFullYear();
+					console.log(Payment_HashValue, AmountPaid, processedPaymentDate);
+					
+					const redirectURL = '/patient-details/?id=' + PatientID;
+					const printParams = "PaymentHashID=" + Payment_HashValue + "&AmountPaid=" + AmountPaid + "&PaymentDate=" + processedPaymentDate;
+					res.render('print-handler', {printmethod:"printpaymentreceipt", params:printParams, redirectURL});
+				}
+			} else {
+				res.redirect('/patient-details/?id=' + PatientID);
+			}
+		} else if (req.body.prodID !== undefined) {
+			console.log("prodID");
+			await CartManagement.ExecuteQuery(req.body.prodID, PatientID, 1, db_pool);
+			const PaymentRecordCartDetails = await AddPaymentRecordCartGet(PatientID);
+			res.render('add-payment-record', { title: "Add Patient Payment Record | Chawla Clinic", SearchResult: undefined, DiscountOption : discountOption, ...PaymentRecordCartDetails});
+		} else if (req.body.searchproducts !== undefined) {
+			console.log("searchproducts");
+			const searchResult = await SearchProducts.ExecuteQuery(req.body.searchproducts, db_pool);
+			console.log(searchResult);
+			const PaymentRecordCartDetails = await AddPaymentRecordCartGet(PatientID);
+			res.render('add-payment-record', { title: "Add Patient Payment Record | Chawla Clinic", SearchResult: searchResult, DiscountOption : discountOption, ...PaymentRecordCartDetails});
+		} else if(req.body.AddTempDressingRecord !== undefined) {
+			console.log("AddTempDressingRecord");
+			await AddTempDressingRecord.ExecuteQuery(req.body, PatientID, GetPadPricing, db_pool);
+			const PaymentRecordCartDetails = await AddPaymentRecordCartGet(PatientID);
+			res.render('add-payment-record', { title: "Add Patient Payment Record | Chawla Clinic", SearchResult: undefined, DiscountOption : discountOption, ...PaymentRecordCartDetails});
+		}
+		else if(req.body.RemoveTempDressingHold !== undefined) {
+			console.log("RemoveTempDressingHold");
+			if(isNumeric(req.body.RemoveTempDressingHold)) {
+				const TempID = parseInt(req.body.RemoveTempDressingHold);
+				await RemoveTempDressingHold.ExecuteQuery(TempID, db_pool);
+				const PaymentRecordCartDetails = await AddPaymentRecordCartGet(PatientID);
+				res.render('add-payment-record', { title: "Add Patient Payment Record | Chawla Clinic", SearchResult: undefined, DiscountOption : discountOption, ...PaymentRecordCartDetails});
+			} else { 
+				const PaymentRecordCartDetails = await AddPaymentRecordCartGet(PatientID); 
+				res.render('add-payment-record', { title: "Add Patient Payment Record | Chawla Clinic", SearchResult: undefined, DiscountOption : discountOption, ...PaymentRecordCartDetails});
+			}
+		}
+	} else if(BackupDBPass !== undefined) {
+		await DBBackupHandler(BackupDBPass, req, res);
+	} else {
+		res.status(404);
+		res.render('page-not-found');
 	}
 });
 
-app.get('/patient-details/check-payment', (req, res) => {
+app.get('/patient-details/check-payment', async (req, res) => {
 	console.log(req.query);
 	const Payment_HashValue = req.query.id;
 	if(Payment_HashValue !== undefined) {
 		if(isAlphaNumericLowercase(Payment_HashValue)) {
-			GetPaymentIDFromHash.ExecuteQuery(undefined, Payment_HashValue, db_connection, function(result) {
-				if(result.length > 0) {
-					const PaymentID = result[0].PaymentID;
-					PatientPaymentRecordGet(PaymentID, "Payment", false, function(PaymentRecord) {
-						res.render('check-payment', { title: "Check Payment Record | Chawla Clinic", ...PaymentRecord, InvalidInput: false});
-					});
-				} else {
-					res.render('check-payment', { title: "Check Payment Record | Chawla Clinic", PaymentDetails: [], InvalidInput: false});
-				}
-			});
+			const result = await GetPaymentIDFromHash.ExecuteQuery(undefined, Payment_HashValue, db_pool);
+			if(result.length > 0) {
+				const PaymentID = result[0].PaymentID;
+				const PaymentRecord = await PatientPaymentRecordGet(PaymentID, "Payment", false);
+				res.render('check-payment', { title: "Check Payment Record | Chawla Clinic", ...PaymentRecord, InvalidInput: false});
+			} else {
+				res.render('check-payment', { title: "Check Payment Record | Chawla Clinic", PaymentDetails: [], InvalidInput: false});
+			}
 		} else {
 			res.render('check-payment', { title: "Check Payment Record | Chawla Clinic", PaymentDetails: undefined, InvalidInput: true});
 		}
@@ -402,28 +403,28 @@ app.get('/patient-details/check-payment', (req, res) => {
 	}
 });
 
-app.post('/patient-details/check-payment', (req, res) => {
+app.post('/patient-details/check-payment', async (req, res) => {
 	console.log(req.body);
 	const BackupDBPass = req.body.BackupDBPassInput;
 	if(BackupDBPass !== undefined) {
-		DBBackupHandler(BackupDBPass, req, res);
+		await DBBackupHandler(BackupDBPass, req, res);
 	}
 });
 
-app.get('/patient-details/payment-records', (req, res) => {
+app.get('/patient-details/payment-records', async (req, res) => {
 	const PatientID = req.query.id;
-	PatientPaymentRecordGet(PatientID, "Patient", false, function(PaymentRecords) {
-		res.render('payment-records', { title: "Payment Records | Chawla Clinic", ...PaymentRecords});
-	});
+	const PaymentRecords = await PatientPaymentRecordGet(PatientID, "Patient", false);
+	res.render('payment-records', { title: "Payment Records | Chawla Clinic", ...PaymentRecords});
 });
 
-app.post('/patient-details/payment-records', (req, res) => {
+app.post('/patient-details/payment-records', async (req, res) => {
 	console.log(req.body);
 	const PatientID = req.query.id;
 	const BackupDBPass = req.body.BackupDBPassInput;
 	const ReprintPaymentID = req.body.ReprintPayment;
 	if(ReprintPaymentID !== undefined) {
-		GetPaymentSummary.ExecuteQuery(parseInt(ReprintPaymentID), db_connection, function(result) {
+		if(!isNaN(ReprintPaymentID)) {
+			const result = await GetPaymentSummary.ExecuteQuery(parseInt(ReprintPaymentID), db_pool);
 			console.log(result);
 			const Payment_HashValue = result[0].PaymentHashCode;
 			if(Payment_HashValue === null) {
@@ -434,43 +435,35 @@ app.post('/patient-details/payment-records', (req, res) => {
 				const PaymentDateObj = new Date(PaymentDate);
 				const processedPaymentDate = String(PaymentDateObj.getDate()).padStart(2, '0' ) + "%2F" + String(PaymentDateObj.getMonth() + 1).padStart(2, '0' ) + "%2F" + PaymentDateObj.getFullYear();
 				const redirectURL = req.originalUrl;
-				console.log("Print Handler Values: ", Payment_HashValue, AmountPaid, processedPaymentDate, redirectURL);
+				console.log("Printer Handler Values: ", Payment_HashValue, AmountPaid, processedPaymentDate, redirectURL);
+				// const printParams = "PaymentHashID=" + Payment_HashValue + "&AmountPaid=" + AmountPaid + "&PaymentDate=" + processedPaymentDate;
+				// 	res.render('print-handler', {printmethod:"printpaymentreceipt", params:printParams, redirectURL});
 				res.render('print-handler', {printmethod:"printpaymentreceipt", params:"PaymentHashID=" + Payment_HashValue + "&AmountPaid=" + AmountPaid + "&PaymentDate=" + processedPaymentDate, redirectURL});
 			}
-		});
+		}
 	} else if(BackupDBPass !== undefined) {
-		DBBackupHandler(BackupDBPass, req, res);
+		await DBBackupHandler(BackupDBPass, req, res);
 	} else {
-		PatientPaymentRecordGet(PatientID, "Patient", false, function(PaymentRecords) {
-			res.render('payment-records', { title: "Payment Records | Chawla Clinic", ...PaymentRecords});
-		});
+		const PaymentRecords = await PatientPaymentRecordGet(PatientID, "Patient", false);
+		res.render('payment-records', { title: "Payment Records | Chawla Clinic", ...PaymentRecords});
 	}
 });
 
-app.get('/token-generation', (req, res) => {
+app.get('/token-generation', async (req, res) => {
 	console.log(req.query);
-	const searchOption = req.query.searchoption;
 	const searchKeyword = req.query.searchkeyword;
-	if (searchOption === undefined) {
-		SQL_GetTokenInfo.ExecuteQuery(undefined, db_connection, function (TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails) {
-			console.log(TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails);
-			res.render('token-generation', { title: "Token Generation | Chawla Clinic", TokenMaxCounts, MaleDetails, FemaleDetails, ChildDetails, searchResult: undefined});
-		});
-	} else {
-		SearchPatient.ExecuteQuery(searchOption, searchKeyword, "token", db_connection, function (data) {
-			SQL_GetTokenInfo.ExecuteQuery(undefined, db_connection, function (TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails) {
-				console.log(TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails);
-				res.render('token-generation', { title: "Token Generation | Chawla Clinic", TokenMaxCounts, MaleDetails, FemaleDetails, ChildDetails, searchResult: data});
-			});
-		});
+	let SearchResultData = undefined;
+	if (searchKeyword !== undefined) {
+		SearchResultData = await SearchPatient.ExecuteQuery(searchKeyword, "Token_PatientSearch", db_pool);
 	}
-	
+	const [TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails] = await GetTokenInfo.ExecuteQuery(db_pool);
+	console.log(TokenMaxCounts,MaleDetails,FemaleDetails,ChildDetails);
+	res.render('token-generation', { title: "Token Generation | Chawla Clinic", TokenMaxCounts, MaleDetails, FemaleDetails, ChildDetails, searchResult: SearchResultData});
 });
 
-app.post('/token-generation', (req, res) => {
+app.post('/token-generation', async (req, res) => {
 	console.log(req.body);
 	const BackupDBPass = req.body.BackupDBPassInput;
-	const ResetTokenData = req.body.ResetTokenData;
 	const ReprintTokenID = req.body.ReprintTokenID;
 	const TokenPatientID = req.body.TokenPatientID;
 	const TokenName = req.body.TokenName;
@@ -479,39 +472,48 @@ app.post('/token-generation', (req, res) => {
 
 	const currentDateTime = new Date();
 	const TokenDateTime = currentDateTime.getFullYear() + "-" + String(currentDateTime.getMonth() + 1).padStart(2, '0') + "-" + String(currentDateTime.getDate()).padStart(2, '0') + " " + String(currentDateTime.getHours()).padStart(2, '0') + ":" + String(currentDateTime.getMinutes()).padStart(2, '0') + ":" + String(currentDateTime.getSeconds()).padStart(2, '0');
-  
-	if(ResetTokenData === 'true') {
-		SQL_ResetTokenData.ExecuteQuery(db_connection, function () {
-			res.redirect('token-generation');
-		});
+
+	if(req.body.ResetTokenData === 'true') {
+		await ResetTokenData.ExecuteQuery(db_pool);
+		res.redirect('token-generation');
 	} else if(ReprintTokenID !== undefined) {
-		GetTokenInfoByID.ExecuteQuery(ReprintTokenID, db_connection, function(result) {
-			const TokenCaseNo = result[0].CaseNo;
-			const TokenNumber = result[0].TokenNumber;
-			const TokenType = result[0].TokenType;
-			const TokenDateTime_unprocessed = result[0].TokenDateTime;
-			const TokenDateProcessed = String(TokenDateTime_unprocessed.getDate()).padStart(2, '0') + "/" + String(TokenDateTime_unprocessed.getMonth() + 1).padStart(2, '0') + "/" + TokenDateTime_unprocessed.getFullYear();
-			const TokenTimeProcessed = TokenDateTime_unprocessed.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-			const redirectURL = '/token-generation';
-			console.log("Print Handler Values: ", TokenCaseNo, TokenNumber, TokenType, TokenDateProcessed, TokenTimeProcessed, redirectURL);
-			res.render('print-handler', {printmethod:"printtokennumber", params:"CaseNum=" + TokenCaseNo + "&PatientType=" + TokenType + "&TokenNumber=" + TokenNumber + "&TokenDate=" + TokenDateProcessed + "&TokenTime=" + TokenTimeProcessed, redirectURL});
-		});
+		const TokenInfo_Result = await GetTokenInfoByID.ExecuteQuery(ReprintTokenID, db_pool);
+		const Reprint_TokenCaseNo = TokenInfo_Result[0].CaseNo;
+		const Reprint_TokenNumber = TokenInfo_Result[0].TokenNumber;
+		const Reprint_TokenType = TokenInfo_Result[0].TokenType;
+		const Reprint_TokenDateTime_unprocessed = TokenInfo_Result[0].TokenDateTime;
+		const Reprint_TokenDateProcessed = String(Reprint_TokenDateTime_unprocessed.getDate()).padStart(2, '0') + "/" + String(Reprint_TokenDateTime_unprocessed.getMonth() + 1).padStart(2, '0') + "/" + Reprint_TokenDateTime_unprocessed.getFullYear();
+		const Reprint_TokenTimeProcessed = Reprint_TokenDateTime_unprocessed.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+		const redirectURL = '/token-generation';
+		console.log("Printer Handler Values: ", Reprint_TokenCaseNo, Reprint_TokenNumber, Reprint_TokenType, Reprint_TokenDateProcessed, Reprint_TokenTimeProcessed, redirectURL);
+		// const printParams = "PaymentHashID=" + Payment_HashValue + "&AmountPaid=" + AmountPaid + "&PaymentDate=" + processedPaymentDate;
+		// res.render('print-handler', {printmethod:"printpaymentreceipt", params:printParams, redirectURL});
+		res.render('print-handler', {printmethod:"printtokennumber", params:"CaseNum=" + Reprint_TokenCaseNo + "&PatientType=" + Reprint_TokenType + "&TokenNumber=" + Reprint_TokenNumber + "&TokenDate=" + Reprint_TokenDateProcessed + "&TokenTime=" + Reprint_TokenTimeProcessed, redirectURL});
 	} else if((TokenName !== undefined && TokenType !== undefined) || (TokenPatientID !== undefined)) {
-		SQL_AddTokenInfo.ExecuteQuery(TokenPatientID, TokenName, TokenType, TokenDateTime, SQL_GetTokenInfo, SearchPatient, db_connection, function (TokenNum, TokenNumType, PatientID, TokenID) {
-			GetTokenInfoByID.ExecuteQuery(TokenID, db_connection, function(result) {
-				const TokenCaseNo = result[0].CaseNo;
-				const TokenNumber = result[0].TokenNumber;
-				const TokenType = result[0].TokenType;
-				const TokenDateTime_unprocessed = result[0].TokenDateTime;
-				const TokenDateProcessed = String(TokenDateTime_unprocessed.getDate()).padStart(2, '0') + "/" + String(TokenDateTime_unprocessed.getMonth() + 1).padStart(2, '0') + "/" + TokenDateTime_unprocessed.getFullYear();
-				const TokenTimeProcessed = TokenDateTime_unprocessed.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-				const redirectURL = '/token-generation';
-				console.log("Print Handler Values: ", TokenCaseNo, TokenNumber, TokenType, TokenDateProcessed, TokenTimeProcessed, redirectURL);
-				res.render('print-handler', {printmethod:"printtokennumber", params:"CaseNum=" + TokenCaseNo + "&PatientType=" + TokenType + "&TokenNumber=" + TokenNumber + "&TokenDate=" + TokenDateProcessed + "&TokenTime=" + TokenTimeProcessed, redirectURL});
-			});
-		});
+		let PatientData = undefined;
+		if(TokenPatientID !== undefined) {
+			PatientData = await SearchPatient.ExecuteQuery(TokenPatientID, "PatientInfo", db_pool);
+		}
+
+		const [TokenNum, TokenNumType, TokenID] = await AddTokenInfo.ExecuteQuery(TokenPatientID, TokenName, TokenType, TokenDateTime, GetTokenInfo, PatientData, db_pool);
+
+		const TokenInfo_Result = await GetTokenInfoByID.ExecuteQuery(TokenID, db_pool);
+		console.log(TokenInfo_Result);
+
+		const Reprint_TokenCaseNo = TokenInfo_Result[0].CaseNo;
+		const Reprint_TokenNumber = TokenInfo_Result[0].TokenNumber;
+		const Reprint_TokenType = TokenInfo_Result[0].TokenType;
+		const Reprint_TokenDateTime_unprocessed = TokenInfo_Result[0].TokenDateTime;
+		const Reprint_TokenDateProcessed = String(Reprint_TokenDateTime_unprocessed.getDate()).padStart(2, '0') + "/" + String(Reprint_TokenDateTime_unprocessed.getMonth() + 1).padStart(2, '0') + "/" + Reprint_TokenDateTime_unprocessed.getFullYear();
+		const Reprint_TokenTimeProcessed = Reprint_TokenDateTime_unprocessed.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+		const redirectURL = '/token-generation';
+
+		console.log("Printer Handler Values: ", Reprint_TokenCaseNo, Reprint_TokenNumber, Reprint_TokenType, Reprint_TokenDateProcessed, Reprint_TokenTimeProcessed, redirectURL);
+		// const printParams = "PaymentHashID=" + Payment_HashValue + "&AmountPaid=" + AmountPaid + "&PaymentDate=" + processedPaymentDate;
+		// res.render('print-handler', {printmethod:"printpaymentreceipt", params:printParams, redirectURL});
+		res.render('print-handler', {printmethod:"printtokennumber", params:"CaseNum=" + Reprint_TokenCaseNo + "&PatientType=" + Reprint_TokenType + "&TokenNumber=" + Reprint_TokenNumber + "&TokenDate=" + Reprint_TokenDateProcessed + "&TokenTime=" + Reprint_TokenTimeProcessed, redirectURL});
 	} else if(EmergencyPatientToken !== undefined) {
-		var AddPatientData = req.body;
+		let AddPatientData = req.body;
 		AddPatientData.type = "B";
 		AddPatientData.disease = "";
 		AddPatientData.address = "";
@@ -520,34 +522,35 @@ app.post('/token-generation', (req, res) => {
 		const currentDate = new Date();
 		AddPatientData.firstvisit = currentDate.getFullYear() + "-" + (currentDate.getMonth() + 1).toString().padStart(2, '0') + "-" + currentDate.getDate().toString().padStart(2, '0');
 
-		AddPatient.ExecuteQuery(AddPatientData, db_connection, function (PatientID) {
-			SQL_AddTokenInfo.ExecuteQuery(PatientID, undefined, undefined, TokenDateTime, SQL_GetTokenInfo, SearchPatient, db_connection, function (TokenNum, TokenNumType, PatientID, TokenID) {
-				GetTokenInfoByID.ExecuteQuery(TokenID, db_connection, function(result) {
-					const TokenCaseNo = result[0].CaseNo;
-					const TokenNumber = result[0].TokenNumber;
-					const TokenType = result[0].TokenType;
-					const TokenDateTime_unprocessed = result[0].TokenDateTime;
-					const TokenDateProcessed = String(TokenDateTime_unprocessed.getDate()).padStart(2, '0') + "/" + String(TokenDateTime_unprocessed.getMonth() + 1).padStart(2, '0') + "/" + TokenDateTime_unprocessed.getFullYear();
-					const TokenTimeProcessed = TokenDateTime_unprocessed.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-					const redirectURL = '/token-generation';
-					console.log("Print Handler Values: ", TokenCaseNo, TokenNumber, TokenType, TokenDateProcessed, TokenTimeProcessed, redirectURL);
-					res.render('print-handler', {printmethod:"printtokennumber", params:"CaseNum=" + TokenCaseNo + "&PatientType=" + TokenType + "&TokenNumber=" + TokenNumber + "&TokenDate=" + TokenDateProcessed + "&TokenTime=" + TokenTimeProcessed, redirectURL});
-				});
-			});
-		});
+		const PatientID = await AddPatient.ExecuteQuery(AddPatientData, db_pool);
+
+		const PatientData = await SearchPatient.ExecuteQuery(PatientID, "PatientInfo", db_pool);
+		const [TokenNum, TokenNumType, TokenID] = await AddTokenInfo.ExecuteQuery(PatientID, undefined, undefined, TokenDateTime, GetTokenInfo, PatientData, db_pool);
+		const TokenInfo = await GetTokenInfoByID.ExecuteQuery(TokenID, db_pool);
+		const TokenCaseNo = TokenInfo[0].CaseNo;
+		const TokenNumber = TokenInfo[0].TokenNumber;
+		const TokenType = TokenInfo[0].TokenType;
+		const TokenDateTime_unprocessed = TokenInfo[0].TokenDateTime;
+		const TokenDateProcessed = String(TokenDateTime_unprocessed.getDate()).padStart(2, '0') + "/" + String(TokenDateTime_unprocessed.getMonth() + 1).padStart(2, '0') + "/" + TokenDateTime_unprocessed.getFullYear();
+		const TokenTimeProcessed = TokenDateTime_unprocessed.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+		const redirectURL = '/token-generation';
+		console.log("Printer Handler Values: ", TokenCaseNo, TokenNumber, TokenType, TokenDateProcessed, TokenTimeProcessed, redirectURL);
+		// const printParams = "PaymentHashID=" + Payment_HashValue + "&AmountPaid=" + AmountPaid + "&PaymentDate=" + processedPaymentDate;
+		// res.render('print-handler', {printmethod:"printpaymentreceipt", params:printParams, redirectURL});
+		res.render('print-handler', {printmethod:"printtokennumber", params:"CaseNum=" + TokenCaseNo + "&PatientType=" + TokenType + "&TokenNumber=" + TokenNumber + "&TokenDate=" + TokenDateProcessed + "&TokenTime=" + TokenTimeProcessed, redirectURL});
 	} else if(BackupDBPass !== undefined) {
-		DBBackupHandler(BackupDBPass, req, res);
+		await DBBackupHandler(BackupDBPass, req, res);
 	}
 });
 
-app.get('/inventory', (req, res) => {
+app.get('/inventory', async (req, res) => {
 	console.log(req.query);
-	GetInventoryData(-1,-1,function(responseValues) {
-		res.render('inventory', responseValues);
-	});
+	
+	const InventoryData = await GetInventoryData();
+	res.render('inventory', { title: "Inventory | Chawla Clinic", EditProductID:-1, EditDressingID:-1, ...InventoryData});
 });
 
-app.post('/inventory', (req, res) => {
+app.post('/inventory', async (req, res) => {
 	console.log(req.query);
 	console.log(req.body);
 	const BackupDBPass = req.body.BackupDBPassInput;
@@ -560,75 +563,52 @@ app.post('/inventory', (req, res) => {
 	const ProductToDiscontinue = req.body.DiscontinueProduct;
 	const AvailableProduct = req.body.AvailableProduct;
 	if(BackupDBPass !== undefined) {
-		DBBackupHandler(BackupDBPass, req, res);
+		await DBBackupHandler(BackupDBPass, req, res);
 	} else if(AddCategoryName !== undefined) {
-		AddProductCategory.ExecuteQuery(AddCategoryName, db_connection, function() {
-			GetInventoryData(-1,-1,function(responseValues) {
-				res.render('inventory', responseValues);
-			});
-		});
+		await AddProductCategory.ExecuteQuery(AddCategoryName, db_pool);
 	} else if(AddProductName !== undefined) {
-		AddProduct.ExecuteQuery(req.body, db_connection, function() {
-			GetInventoryData(-1,-1,function(responseValues) {
-				res.render('inventory', responseValues);
-			});
-		});
+		await AddProduct.ExecuteQuery(req.body, db_pool);
 	} else if(EditProductID !== undefined) {
-		var editProdID = -1;
+		let editProdID = -1;
 		if (/^\d+$/.test(EditProductID)) {
 			editProdID = parseInt(EditProductID);
 		}
-		GetInventoryData(editProdID,-1,function(responseValues) {
-			res.render('inventory', responseValues);
-		});
+		const InventoryData = await GetInventoryData();
+		res.render('inventory', { title: "Inventory | Chawla Clinic", EditProductID:editProdID, EditDressingID:-1, ...InventoryData});
 	} else if(SaveProductID !== undefined) {
-		UpdateProduct.ExecuteQuery(req.body, db_connection, function() {
-			GetInventoryData(-1,-1,function(responseValues) {
-				res.render('inventory', responseValues);
-			});
-		});
+		await UpdateProduct.ExecuteQuery(req.body, db_pool);
 	} else if(EditDressingID !== undefined) {
-		var editDressID = -1;
+		let editDressID = -1;
 		if (/^\d+$/.test(EditDressingID)) {
 			editDressID = parseInt(EditDressingID);
 		}
-		GetInventoryData(-1,editDressID,function(responseValues) {
-			res.render('inventory', responseValues);
-		});
+		const InventoryData = await GetInventoryData();
+		res.render('inventory', { title: "Inventory | Chawla Clinic", EditProductID:-1, EditDressingID:editDressID, ...InventoryData});
 	} else if(SaveDressingID !== undefined) {
-		UpdateDressingPad.ExecuteQuery(req.body, db_connection, function() {
-			GetInventoryData(-1,-1,function(responseValues) {
-				res.render('inventory', responseValues);
-			});
-		});
+		await UpdateDressingPad.ExecuteQuery(req.body, db_pool);
 	} else if(ProductToDiscontinue !== undefined) {
-		AddDiscontinuedProduct.ExecuteQuery(ProductToDiscontinue, db_connection, function() {
-			GetInventoryData(-1,-1,function(responseValues) {
-				res.render('inventory', responseValues);
-			});
-		});
+		await AddDiscontinuedProduct.ExecuteQuery(ProductToDiscontinue, db_pool);
 	} else if(AvailableProduct !== undefined) {
-		RemoveDiscontinuedProduct.ExecuteQuery(AvailableProduct, db_connection, function() {
-			GetInventoryData(-1,-1,function(responseValues) {
-				res.render('inventory', responseValues);
-			});
-		});
+		await RemoveDiscontinuedProduct.ExecuteQuery(AvailableProduct, db_pool);
+	}
+	if(BackupDBPass === undefined && EditProductID === undefined && EditDressingID === undefined) {
+		res.redirect(req.originalUrl);
 	}
 });
 
-app.get('/account-management', (req, res) => {
+app.get('/account-management', async (req, res) => {
 	res.redirect('/under-construction');
 });
 
-app.get('/under-construction', (req, res) => {
+app.get('/under-construction', async (req, res) => {
 	res.render('underconstruction')
 });
 
-app.post('/under-construction', (req, res) => {
+app.post('/under-construction', async (req, res) => {
 	res.redirect('/under-construction')
 });
 
 app.use(function (req, res) {
 	res.status(404);
 	res.render('page-not-found');
-})
+});
