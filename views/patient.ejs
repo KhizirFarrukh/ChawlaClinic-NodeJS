@@ -36,7 +36,7 @@
       } else {
         document.getElementById('caseno').disabled = true;
         document.getElementById('caseno').value = "";
-        document.getElementById('caseno').placeholder = "B23-012345";
+        document.getElementById('caseno').placeholder = "23B-012345";
       }
     }
   </script>
@@ -52,24 +52,6 @@
       <div id="SearchPatient" style="margin-right: 150px;">
         <h4>Search for patient</h4>
         <form>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="searchoption" id="CaseNoRadio" value="CaseNo" checked>
-            <label class="form-check-label" for="CaseNoRadio">
-              Case Number
-            </label>
-          </div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="searchoption" id="MobileNumRadio" value="MobileNum">
-            <label class="form-check-label" for="MobileNumRadio">
-              Mobile Number
-            </label>
-          </div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="searchoption" id="NameRadio" value="Name">
-            <label class="form-check-label" for="NameRadio">
-              Patient Name
-            </label>
-          </div>
           <div class="input-group flex-nowrap mt-10">
             <span class="input-group-text" id="addon-wrapping"><svg xmlns="http://www.w3.org/2000/svg" width="20"
                 height="20" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
@@ -80,6 +62,7 @@
               placeholder="Search keyword" aria-label="Search" aria-describedby="addon-wrapping" required>
             <button class="btn btn-outline-secondary" type="submit" id="button-addon2">Search</button>
           </div>
+          <p style="font-size:small; color: gray; font-style: italic;">This input field accepts Name, Phone Number and Case Number</p>
         </form><br>
         <% if(searchResult != undefined) {%>
           <% if (searchResult.length > 0) { %>
@@ -92,7 +75,9 @@
                 </h2>
                 <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
                   <div class="accordion-body">
-                    set filters here...
+                    <div class="alert alert-info" role="alert">
+                      This feature is under development
+                    </div>
                   </div>
                 </div>
               </div>
@@ -109,21 +94,21 @@
                 </tr>
               </thead>
               <tbody>
-                  <% for ( let i = 0;i < searchResult.length;i++) { %>
-                    <% var date = searchResult[i].FirstVisit; %>
-                    <% date = String(date.getDate()).padStart(2, '0') + "-" + String(date.getMonth() + 1).padStart(2, '0') + "-" + date.getFullYear(); %> 
-                    <tr>
-                      <form action="get">
-                        <th scope="row"><%= i+1 %> </th>
-                        <td><%= searchResult[i].CaseNo %></td>
-                        <td><%= searchResult[i].PatientName %></td>
-                        <td><%= searchResult[i].PhoneNumber %></td>
-                        <td><%= date %></td>
-                        <td><%= searchResult[i].Status %></td>
-                        <td><a class="btn btn-primary" href="patient-details?id=<%= searchResult[i].PatientID %> " role="button">Select</a></td>
-                      </form>
-                    </tr>
-                  <% } %>
+                <% for ( let i = 0;i < searchResult.length;i++) { %>
+                  <% var date = searchResult[i].FirstVisit; %>
+                  <% date = String(date.getDate()).padStart(2, '0') + "-" + String(date.getMonth() + 1).padStart(2, '0') + "-" + date.getFullYear(); %> 
+                  <tr>
+                    <form action="get">
+                      <th scope="row"><%= i+1 %> </th>
+                      <td><%= searchResult[i].CaseNo %></td>
+                      <td><%= searchResult[i].PatientName %></td>
+                      <td><%= searchResult[i].PhoneNumber %></td>
+                      <td><%= date %></td>
+                      <td><%= searchResult[i].Status %></td>
+                      <td><a class="btn btn-primary" href="patient-details?id=<%= searchResult[i].PatientID %> " role="button">Select</a></td>
+                    </form>
+                  </tr>
+                <% } %>
               </tbody>
             </table>
           <% } else { %>
